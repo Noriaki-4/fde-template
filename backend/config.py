@@ -41,9 +41,10 @@ class Settings(BaseSettings):
     aws_region: str = "ap-northeast-1"
 
     # LLM (Phase 4+)
-    llm_provider: str = "local"  # local | bedrock
+    llm_provider: str = "local"  # local | gemma | bedrock
     ollama_base_url: str = "http://host.docker.internal:11434"
     ollama_model: str = "qwen3:8b"
+    gemma_model: str = "gemma:4-e4b"
     bedrock_model_id: str = "anthropic.claude-3-sonnet-20240229-v1:0"
     embedding_model: str = "bge-m3"
 

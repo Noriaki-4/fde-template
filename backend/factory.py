@@ -51,6 +51,13 @@ class ServiceFactory:
                 config.ollama_base_url,
                 config.ollama_model,
             )
+        elif config.llm_provider == "gemma":
+            from backend.services.llm import GemmaLLMService
+
+            return GemmaLLMService(
+                config.ollama_base_url,
+                config.gemma_model,
+            )
         elif config.llm_provider == "bedrock":
             from backend.services.bedrock import BedrockLLMService
 

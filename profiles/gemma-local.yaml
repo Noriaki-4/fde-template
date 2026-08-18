@@ -1,0 +1,33 @@
+profile: gemma-local
+description: "Local RAG with Google Gemma 4 LLM"
+
+ui:
+  enabled: true
+  type: gradio
+
+database:
+  relational:
+    enabled: true
+    engine: postgresql
+
+storage:
+  enabled: true
+  engine: minio
+
+search:
+  enabled: true
+  engine: opensearch
+
+graph:
+  enabled: false
+
+agent:
+  enabled: false
+
+llm:
+  enabled: true
+  provider: gemma
+  model: gemma:4-e4b
+
+redis:
+  enabled: false
