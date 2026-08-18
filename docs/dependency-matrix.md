@@ -68,11 +68,13 @@ Version management across all phases with compatibility matrix.
 | Service | Image | Version | Notes |
 |---------|-------|---------|-------|
 | PostgreSQL | postgres | 16-alpine | Relational DB |
-| MinIO | minio/minio | latest | Object storage |
+| MinIO | minio/minio | RELEASE.2025-04-22 | Object storage |
 | FastAPI | python | 3.11-slim | Backend runtime |
 | Gradio | python | 3.11-slim | Frontend runtime |
-| OpenSearch | opensearchproject/opensearch | 2.19 | Search engine |
-| Neo4j | neo4j | 5.27 | Graph database |
+| OpenSearch | opensearchproject/opensearch | 2.19.1 | Search engine |
+| Neo4j | neo4j | 5.27.0-community | Graph database |
+| Virtuoso | openlink/virtuoso-opensource-7 | 7.2.11 | RDF store |
+| ScyllaDB | scylladb/scylla | 5.4.12 | NoSQL (Alternator) |
 | Ollama | ollama/ollama | latest | Local LLM |
 
 ## Compatibility Notes
