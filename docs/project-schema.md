@@ -144,20 +144,32 @@ llm:
 ### Ollama Model Examples
 
 ```yaml
-# Qwen (default)
+# Gemma 4 (default)
 llm:
-  provider: ollama
-  model: qwen:7b
-
-# Gemma
-llm:
+  enabled: true
   provider: ollama
   model: gemma:4-e4b
 
+# Qwen
+llm:
+  enabled: true
+  provider: ollama
+  model: qwen:7b
+
 # Mistral
 llm:
+  enabled: true
   provider: ollama
   model: mistral:7b
+```
+
+### Bedrock Example
+
+```yaml
+llm:
+  enabled: true
+  provider: bedrock
+  bedrock_model_id: anthropic.claude-3-5-sonnet-20241022-v2:0
 ```
 
 ## redis
