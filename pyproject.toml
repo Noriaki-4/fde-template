@@ -54,6 +54,11 @@ dev = [
     "pre-commit==3.8.0",
 ]
 
+ui = [
+    "gradio==4.44.1",
+    "streamlit==1.40.0",
+]
+
 llm = [
     "ollama==0.4.4",
     "anthropic==0.42.0",

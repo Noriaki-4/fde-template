@@ -90,6 +90,26 @@ services:
       - ../frontend/gradio:/app
     command: python app.py
 
+  # Streamlit UI
+  streamlit:
+    build:
+      context: ..
+      dockerfile: frontend/streamlit/Dockerfile
+    container_name: fde-streamlit
+    environment:
+      BACKEND_URL: http://backend:8000
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "8501:8501"
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ../frontend/streamlit:/app
+    command: streamlit run app.py
+    profiles:
+      - with-streamlit
+
   # OpenSearch (Phase 2+)
   opensearch:
     image: opensearchproject/opensearch:2.19.1

@@ -138,8 +138,13 @@ make backend
 # → http://localhost:8000/docs
 
 # フロントエンド起動 (ターミナル 2)
+# Gradio を使用（推奨）
 make frontend
 # → http://localhost:7860
+
+# または Streamlit を使用
+cd frontend/streamlit && streamlit run app.py
+# → http://localhost:8501
 ```
 
 ### 動作確認
@@ -177,8 +182,10 @@ my-rag-project/
 │   └── repositories/
 │       └── domain_repo.py     # ← データアクセス
 ├── frontend/
-│   └── gradio/
-│       └── app.py             # ← UI カスタマイズ
+│   ├── gradio/
+│   │   └── app.py             # ← Gradio UI（推奨）
+│   └── streamlit/
+│       └── app.py             # ← Streamlit UI
 ├── projects/
 │   └── your-project/          # ← プロジェクト固有ファイル
 │       └── project.yaml

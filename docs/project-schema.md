@@ -31,7 +31,7 @@ project:
 ```yaml
 ui:
   enabled: true
-  type: gradio  # gradio | streamlit | custom
+  type: gradio  # gradio | custom
   port: 7860
   share: false
 ```

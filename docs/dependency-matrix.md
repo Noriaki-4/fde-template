@@ -36,6 +36,13 @@ Version management across all phases with compatibility matrix.
 | langgraph | 0.1.46 | 3.9 | 4 | Framework | Agent orchestration |
 | langchain-core | 0.1.52 | 3.9 | 4 | Framework | Components |
 
+## Frontend & UI
+
+| Package | Version | Min Python | Phase | Type | Notes |
+|---------|---------|-----------|-------|------|-------|
+| gradio | 4.44.1 | 3.8 | 1 | UI | Gradio UI (recommended) |
+| streamlit | 1.40.0 | 3.8 | 1 | UI | Streamlit UI alternative |
+
 ## CLI & Utils (Phase 6)
 
 | Package | Version | Min Python | Phase | Type | Notes |
@@ -70,7 +77,8 @@ Version management across all phases with compatibility matrix.
 | PostgreSQL | postgres | 16-alpine | Relational DB |
 | MinIO | minio/minio | RELEASE.2025-04-22 | Object storage |
 | FastAPI | python | 3.11-slim | Backend runtime |
-| Gradio | python | 3.11-slim | Frontend runtime |
+| Gradio | python | 3.11-slim | Frontend (recommended) |
+| Streamlit | python | 3.11-slim | Frontend (alternative) |
 | OpenSearch | opensearchproject/opensearch | 2.19.1 | Search engine |
 | Neo4j | neo4j | 5.27.0-community | Graph database |
 | Virtuoso | openlink/virtuoso-opensource-7 | 7.2.11 | RDF store |

@@ -524,7 +524,7 @@ cd cdk && cdk deploy --require-approval=never && cd ..
 ## 参考資料
 
 - [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) - 実装ロードマップ
-- [AGENTS.md](AGENTS.md) - Agent/LLM 設計
+- [AGENTS.md](../../AGENTS.md) - Agent/LLM 設計
 - [docker-compose.yml](../../infra/docker-compose.yml) - サービス構成
 - AWS デプロイ: `cdk/README.md`
 - API ドキュメント: `http://localhost:8000/docs`

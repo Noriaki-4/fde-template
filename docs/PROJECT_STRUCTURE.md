@@ -56,9 +56,12 @@ fde-template/
 │       └── opensearch.py              # OpenSearch ops (Phase 2)
 │
 ├── frontend/
-│   └── gradio/
+│   ├── gradio/
+│   │   ├── Dockerfile
+│   │   └── app.py                     # Gradio UI (推奨)
+│   └── streamlit/
 │       ├── Dockerfile
-│       └── app.py                     # Gradio UI
+│       └── app.py                     # Streamlit UI
 │
 ├── cli/                               # CLI (Phase 6)
 │   ├── __init__.py
