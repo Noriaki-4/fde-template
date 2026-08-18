@@ -53,6 +53,11 @@ if config.rdf_enabled:
 
     app.include_router(graph.router, prefix="/graph", tags=["graph"])
 
+# GenU Chat API (Phase 9)
+from backend.api.routes import genu_chat
+
+app.include_router(genu_chat.router, prefix="/chat", tags=["chat"])
+
 @app.on_event("startup")
 async def startup_event():
     global graph_service, rdf_service, llm_service

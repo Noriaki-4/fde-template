@@ -1,0 +1,44 @@
+profile: aws-production
+description: "AWS Production - Full managed services"
+
+ui:
+  enabled: true
+  type: genu
+
+database:
+  relational:
+    enabled: true
+    engine: rds-postgresql
+
+nosql:
+  enabled: true
+  engine: dynamodb
+
+storage:
+  enabled: true
+  engine: s3
+
+search:
+  enabled: true
+  engine: opensearch-service
+
+graph:
+  enabled: true
+  model: property_graph
+  engine: neptune
+
+rdf:
+  enabled: false
+
+agent:
+  enabled: true
+  runtime: agentcore
+
+llm:
+  enabled: true
+  provider: bedrock
+  model_id: anthropic.claude-3-sonnet-20240229-v1:0
+
+redis:
+  enabled: true
+  engine: elasticache

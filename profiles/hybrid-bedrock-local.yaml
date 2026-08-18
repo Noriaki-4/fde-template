@@ -1,0 +1,43 @@
+profile: hybrid-bedrock-local
+description: "Hybrid - Local services with AWS Bedrock LLM"
+
+ui:
+  enabled: true
+  type: gradio
+
+database:
+  relational:
+    enabled: true
+    engine: postgresql
+
+nosql:
+  enabled: false
+
+storage:
+  enabled: true
+  engine: minio
+
+search:
+  enabled: true
+  engine: opensearch
+
+graph:
+  enabled: true
+  model: property_graph
+  engine: neo4j
+
+rdf:
+  enabled: false
+
+agent:
+  enabled: true
+  runtime: local
+  framework: strands
+
+llm:
+  enabled: true
+  provider: bedrock
+  model_id: anthropic.claude-3-sonnet-20240229-v1:0
+
+redis:
+  enabled: false
