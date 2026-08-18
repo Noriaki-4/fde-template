@@ -1,5 +1,10 @@
 profile: rag-basic
-description: "Basic RAG with search"
+description: "Basic RAG with search + Gemma 4 LLM"
+
+llm:
+  enabled: true
+  provider: ollama
+  model: gemma:4-e4b
 
 ui:
   enabled: true

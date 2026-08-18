@@ -1,5 +1,10 @@
 profile: graph-rag
-description: "RAG with Graph Database"
+description: "RAG with Graph Database + Gemma 4 LLM"
+
+llm:
+  enabled: true
+  provider: ollama
+  model: gemma:4-e4b
 
 ui:
   enabled: true
