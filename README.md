@@ -1,198 +1,134 @@
-# FDE Template — Modular AI PoC Platform
+# FDE Template — Modular AI/RAG Platform
 
-**Forward Deployed Engineer 向けの再利用可能な AI PoC 基盤**
+Modular, production-ready foundation for AI PoC (Phases 1-9) supporting local OSS ↔ AWS parity.
 
-## 概要
+## Quick Navigation
 
-複数プロジェクトの短期間での生成AI / RAG / GraphRAG / AI Agent PoC を立ち上げるためのスターター基盤。
+**📖 Documentation** → [`docs/`](docs/)
 
-**重視するポイント:**
-- ✓ ローカル（OSS）で低コスト開発
-- ✓ AWS Managed Service への置き換え可能
-- ✓ プロジェクトごとに機能 ON/OFF
-- ✓ ローカル ↔ AWS で同じコード
-
----
-
-## クイックスタート
-
-### 前提条件
-
-```bash
-python --version   # 3.11.x
-docker --version   # 最新
-```
-
-### 起動（Phase 1 最小構成）
-
-```bash
-# 1. リポジトリクローン
-git clone https://github.com/your-org/fde-template.git
-cd fde-template
-
-# 2. 環境ファイル作成
-cp .env.example .env.local
-
-# 3. コンテナ起動
-docker compose -f infra/docker-compose.yml up -d
-
-# 4. ヘルスチェック
-curl http://localhost:8000/health
-
-# 5. UI アクセス
-open http://localhost:7860  # Gradio
-open http://localhost:8000/docs  # API Docs
-```
+- **Start here**: [USAGE.md](docs/USAGE.md) — How to use this template for your project
+- **Quick start**: [QUICKSTART.md](docs/QUICKSTART.md) — 5-minute local setup
+- **Architecture**: [ARCHITECTURE.md](docs/ARCHITECTURE.md) — System design & components
+- **Setup guide**: [SETUP.md](docs/SETUP.md) — Detailed installation
+- **Implementation**: [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) — Phase roadmap
+- **Operations**: [RUNBOOK.md](docs/RUNBOOK.md) — Troubleshooting & deployment
+- **Structure**: [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) — Directory layout
+- **Dependencies**: [docs/dependency-matrix.md](docs/dependency-matrix.md) — Version matrix
+- **Config**: [docs/project-schema.md](docs/project-schema.md) — YAML schema reference
 
 ---
 
-## アーキテクチャ
+## What is FDE Template?
 
-```
-┌──────────────────────────────────────────┐
-│           Gradio UI (7860)               │
-├──────────────────────────────────────────┤
-│         FastAPI Backend (8000)           │
-├─────────────────┬──────────────────┬──────┤
-│   PostgreSQL    │     MinIO        │Search│
-│    (5432)       │    (9000)        │ (*)  │
-└─────────────────┴──────────────────┴──────┘
-  (*) Phase 2+: OpenSearch (9200)
-  (*) Phase 3+: Neo4j (7687) + Virtuoso SPARQL (8890)
-```
+A modular, battle-tested foundation for building AI systems with:
+
+- **Phase 1-3**: Core RAG (Search + Graph databases)
+- **Phase 4**: Agent/LLM integration (Ollama + Bedrock)
+- **Phase 5**: AWS CDK infrastructure
+- **Phase 6**: CLI tooling & profiles
+- **Phase 7-9**: Production features (NoSQL, AgentCore, GenU Chat)
+
+**Local ↔ AWS**: Switch configs via `project.yaml` — develop locally, deploy to AWS.
 
 ---
 
-## ドキュメント
-
-| ファイル | 説明 |
-|---------|------|
-| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | 実装ロードマップ (Phase 1-6) |
-| [AGENTS.md](AGENTS.md) | Agent / LLM 設計 (Phase 4+) |
-| [RUNBOOK.md](RUNBOOK.md) | 起動・デプロイ手順 |
-| [adr/](adr/) | アーキテクチャ決定記録 |
-
----
-
-## ディレクトリ構成
+## Repository Structure
 
 ```
 fde-template/
-├── backend/
-│   ├── api/
-│   │   ├── main.py          # FastAPI アプリケーション
-│   │   ├── routes/          # API ルーター
-│   │   └── __init__.py
-│   ├── config.py            # 設定管理
-│   ├── Dockerfile
-│   └── __init__.py
-│
-├── frontend/
-│   └── gradio/
-│       ├── app.py           # Gradio UI
-│       └── Dockerfile
-│
-├── infra/
-│   └── docker-compose.yml   # サービス構成
-│
-├── pyproject.toml           # Python 依存関係
-├── IMPLEMENTATION_PLAN.md   # ロードマップ
-├── RUNBOOK.md              # 手順書
-├── AGENTS.md               # Agent 設計
-└── README.md               # このファイル
+├── README.md              # This file (index)
+├── docs/                  # All documentation
+│   ├── USAGE.md          # Start here for new projects
+│   ├── QUICKSTART.md
+│   ├── ARCHITECTURE.md
+│   └── ...
+├── backend/              # Python/FastAPI
+├── frontend/             # Gradio UI
+├── infra/                # Docker Compose
+├── cdk/                  # AWS IaC (Phase 5)
+├── tests/                # Test suite
+├── scripts/              # Utilities
+├── profiles/             # Config templates
+├── adr/                  # Architecture decisions
+└── projects/             # Project-specific files
 ```
 
 ---
 
-## 開発ガイド
-
-### ローカル開発（Virtual Env）
+## Quick Start
 
 ```bash
-# Python 環境構築
-python3.11 -m venv venv
-source venv/bin/activate
+# 1. Use as template (GitHub UI: "Use this template")
+gh repo create my-project --template Noriaki-4/fde-template
 
-# 依存関係インストール
-pip install -e ".[dev]"
+cd my-project
 
-# テスト実行
-pytest tests/ -v
+# 2. Choose config
+cp profiles/rag-basic.yaml project.yaml
+
+# 3. Setup environment
+cp .env.example .env
+uv install -e ".[dev]"
+
+# 4. Run locally
+make up
+make backend      # Terminal 1
+make frontend     # Terminal 2
 ```
 
-### Backend API 開発
+→ [Full setup guide](docs/QUICKSTART.md)
 
-```bash
-cd backend
-uvicorn api.main:app --reload
-# http://localhost:8000/docs で Swagger UI を確認
+---
+
+## Features by Phase
+
+| Phase | Feature | Status |
+|-------|---------|--------|
+| 1 | Core RAG (FastAPI + PostgreSQL + OpenSearch) | ✅ |
+| 2 | Semantic Search (Vector embeddings) | ✅ |
+| 3 | Graph Databases (Neo4j + Virtuoso) | ✅ |
+| 4 | Agent/LLM (Ollama + Bedrock) | ✅ |
+| 5 | AWS CDK Infrastructure | ✅ |
+| 6 | CLI & Profiles | ✅ |
+| 7 | NoSQL (ScyllaDB + DynamoDB) | ✅ |
+| 8 | AgentCore + Canonical Graph | ✅ |
+| 9 | GenU Chat + RAG Service | ✅ |
+
+---
+
+## Local vs. AWS
+
+Select via `project.yaml`:
+
+```yaml
+# Local (Ollama)
+llm:
+  provider: ollama
+  model: gemma:4-e4b
+
+# AWS (Bedrock)
+llm:
+  provider: bedrock
+  bedrock_model_id: anthropic.claude-3-5-sonnet-20241022-v2:0
 ```
 
-### Docker での開発
-
-```bash
-# ビルド
-docker compose -f infra/docker-compose.yml build
-
-# 起動
-docker compose -f infra/docker-compose.yml up -d
-
-# ログ確認
-docker compose -f infra/docker-compose.yml logs -f backend
-```
+Same code, different infrastructure.
 
 ---
 
-## Phase ロードマップ
+## Support
 
-| Phase | 期間 | 主要機能 |
-|-------|------|---------|
-| **Phase 1** | Week 1-2 | ✓ FastAPI + PostgreSQL + MinIO + Gradio |
-| Phase 2 | Week 3 | OpenSearch 統合 |
-| Phase 3 | Week 4-5 | Neo4j / RDF Graph 対応 |
-| Phase 4 | Week 6-7 | Agent / LLM 統合 |
-| Phase 5 | Week 8-9 | AWS CDK デプロイ |
-| Phase 6 | Week 10 | CLI / Profile 化 |
-
-**現在:** Phase 1（実装中）
+- **Troubleshooting**: [RUNBOOK.md](docs/RUNBOOK.md)
+- **Architecture**: [ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- **API Docs**: http://localhost:8000/docs (after running)
+- **Config Schema**: [docs/project-schema.md](docs/project-schema.md)
 
 ---
 
-## 主な特徴
+## License
 
-### Interface First Architecture
-- DB 製品ではなく、openCypher / SPARQL / S3 API などのインターフェースを基準
-- Neo4j ↔ Neptune、MinIO ↔ S3 の置き換えが容易
-
-### Local ↔ AWS Parity
-- ローカルと AWS で同じアプリケーションコード
-- Config（project.yaml）で動作環境を切り替え
-
-### Modular Design
-- 各機能を ON/OFF できる（project.yaml）
-- プロジェクトに必要な機能だけ有効化
+MIT — Fork, adapt, contribute.
 
 ---
 
-## 本番デプロイ（Phase 5+）
-
-```bash
-cd cdk
-cdk deploy --require-approval=never
-```
-
-詳細は [RUNBOOK.md](RUNBOOK.md) を参照。
-
----
-
-## サポート
-
-- **設計**: [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)
-- **起動手順**: [RUNBOOK.md](RUNBOOK.md)
-- **トラブルシューティング**: [RUNBOOK.md#8-トラブルシューティング](RUNBOOK.md#8-トラブルシューティング)
-
----
-
-## ライセンス
-
-Internal Use Only
+**→ Start with [USAGE.md](docs/USAGE.md)**
