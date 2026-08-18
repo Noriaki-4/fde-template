@@ -129,7 +129,7 @@ services:
 
   # Neo4j (Phase 3+ Property Graph)
   neo4j:
-    image: neo4j:5.26.1-community
+    image: neo4j:5.27.0-community
     container_name: fde-neo4j
     environment:
       NEO4J_AUTH: neo4j/password
@@ -152,7 +152,7 @@ services:
 
   # Virtuoso (Phase 3+ RDF)
   virtuoso:
-    image: openlink/virtuoso-opensource-7:latest
+    image: openlink/virtuoso-opensource-7:7.2.11
     container_name: fde-virtuoso
     environment:
       DBA_PASSWORD: dba
@@ -174,7 +174,7 @@ services:
 
   # ScyllaDB Alternator (Phase 7+ NoSQL)
   scylladb:
-    image: scylladb/scylla:latest
+    image: scylladb/scylla:5.4.12
     container_name: fde-scylladb
     command: --listen-address 0.0.0.0 --rpc-address 0.0.0.0 --alternator-port 8000
     environment:
