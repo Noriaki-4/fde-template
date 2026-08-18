@@ -522,22 +522,359 @@ docker compose down
 
 ## デリバリー予定
 
-| Phase | 期間 | 主要成果物 | バージョン |
-|-------|------|-----------|----------|
-| Phase 1 | Week 1-2 | Gradio + FastAPI + PostgreSQL | v0.1.0 |
-| Phase 2 | Week 3 | OpenSearch 統合 | v0.2.0 |
-| Phase 3 | Week 4-5 | Graph (Neo4j/Jena) | v0.3.0 |
-| Phase 4 | Week 6-7 | Agent + LLM 統合 | v0.4.0 |
-| Phase 5 | Week 8-9 | AWS CDK | v0.5.0 |
-| Phase 6 | Week 10 | CLI + Profile | v1.0.0 |
+| Phase | 期間 | 主要成果物 | バージョン | 状態 |
+|-------|------|-----------|----------|------|
+| Phase 1 | Week 1-2 | Gradio + FastAPI + PostgreSQL | v0.1.0 | ✓ |
+| Phase 2 | Week 3 | OpenSearch 統合 | v0.2.0 | ✓ |
+| Phase 3 | Week 4-5 | Graph (Neo4j + Virtuoso RDF) | v0.3.0 | ✓ |
+| Phase 4 | Week 6-7 | Agent + LLM (Ollama) | v0.4.0 | ✓ |
+| Phase 5 | Week 8-9 | AWS CDK (RDS, S3, OpenSearch) | v0.5.0 | ✓ |
+| Phase 6 | Week 10 | CLI + Profile (3種) | v1.0.0 | ✓ |
+| Phase 7 | Week 11-12 | NoSQL + AWS Bedrock | v1.1.0 | → |
+| Phase 8 | Week 13-14 | AWS AgentCore + Graph中間形式 | v1.2.0 | → |
+| Phase 9 | Week 15 | GenU Frontend 統合 | v1.3.0 | → |
+
+---
+
+## Phase 7: NoSQL & AWS LLM (Week 11-12)
+
+**目標**: DynamoDB互換とAWS Bedrockの統合
+
+**成果物:**
+
+1. **NoSQL Layer**
+   - `backend/database/nosql/`
+   - BaseNoSQLRepository (abstract)
+   - ScyllaDBAlternatorAdapter
+   - DynamoDBAdapter
+   - Config: `database.nosql.enabled`, `database.nosql.engine`
+
+2. **LLM Provider Expansion**
+   - `backend/services/bedrock.py`
+   - BedrockLLMService (async)
+   - Model routing (default/planner/generation/embedding/reranker)
+   - Config: `llm.provider=bedrock`, `llm.region`, `llm.model_id`
+
+3. **Docker Compose**
+   - ScyllaDB Alternator (with-nosql profile)
+   - Environment variables for Alternator
+
+4. **Integration Tests**
+   - NoSQL repository tests
+   - Bedrock LLM tests (mock)
+   - Adapter compatibility tests
+
+5. **Documentation**
+   - NoSQL schema examples
+   - Bedrock Model ID mapping
+   - Alternator互換性チェックリスト
+
+**ファイル:**
+```
+backend/
+├─ database/
+│  └─ nosql/
+│     ├─ base.py
+│     ├─ scylladb.py
+│     └─ dynamodb.py
+├─ services/
+│  └─ bedrock.py
+tests/
+├─ unit/
+│  └─ test_nosql_*.py
+└─ integration/
+   └─ test_nosql_database.py
+```
+
+---
+
+## Phase 8: AWS AgentCore & Graph Canonical Format (Week 13-14)
+
+**目標**: AWS本番向けAgent統合とGraph中間形式
+
+**成果物:**
+
+1. **AgentCore Runtime**
+   - `backend/agent/agentcore.py`
+   - AgentCoreRuntime実装
+   - Tool/Service as API integration
+   - Config: `agent.runtime=agentcore`, `agent.agent_id`
+
+2. **Graph Canonical Format**
+   - `backend/graph/canonical/`
+   - CanonicalNode, CanonicalRelation (dataclass)
+   - Graph transformer (Property/RDF → Canonical)
+   - S3/MinIO serialization (JSONL format)
+   - Batch operations (nodes.jsonl, relations.jsonl)
+
+3. **Storage Layer**
+   - `backend/storage/graph_store.py`
+   - GraphStorageRepository
+   - S3/MinIO adapter
+   - Version management
+
+4. **Routes**
+   - `backend/api/routes/graph_canonical.py`
+   - GET /graph/export (Canonical format)
+   - POST /graph/import (from S3)
+   - Bulk operations
+
+5. **Tests**
+   - Canonical format serialization tests
+   - Graph transformation tests
+   - S3 storage tests
+   - AgentCore mock tests
+
+**ファイル:**
+```
+backend/
+├─ agent/
+│  └─ agentcore.py
+├─ graph/
+│  ├─ canonical/
+│  │  ├─ models.py
+│  │  ├─ transformer.py
+│  │  └─ serializer.py
+├─ storage/
+│  └─ graph_store.py
+├─ api/routes/
+│  └─ graph_canonical.py
+tests/
+├─ unit/
+│  ├─ test_canonical_format.py
+│  └─ test_agentcore.py
+└─ integration/
+   └─ test_graph_storage.py
+```
+
+**Profile追加:**
+- `profiles/aws-production.yaml`
+- `profiles/hybrid-bedrock-local.yaml`
+
+---
+
+## Phase 9: GenU Frontend Integration (Week 15)
+
+**目標**: GenUのFrontendから独自Backendへの接続
+
+**成果物:**
+
+1. **GenU Adapter**
+   - `backend/api/adapters/genu.py`
+   - GenU API互換レイヤー
+   - Request/Response transformation
+   - ChatMessage形式の標準化
+
+2. **Chat/Conversation API**
+   - `backend/api/routes/genu_chat.py`
+   - POST /chat/conversations (create)
+   - POST /chat/messages (send)
+   - GET /chat/{conversation_id}/messages
+   - WebSocket for streaming (optional)
+
+3. **Unified Service Layer**
+   - RAGService (Search + Graph統合)
+   - 統一Query Interface
+   - Response formatting
+
+4. **Frontend Config**
+   - `frontend/genu/config.ts`
+   - Backend URL configuration
+   - Model selection UI
+   - Agent enable/disable toggle
+
+5. **Documentation**
+   - GenU統合ガイド
+   - API互換性マトリックス
+   - UI カスタマイズ例
+
+**ファイル:**
+```
+backend/
+├─ api/
+│  ├─ adapters/
+│  │  └─ genu.py
+│  └─ routes/
+│     └─ genu_chat.py
+├─ services/
+│  └─ rag.py
+frontend/
+└─ genu/
+   ├─ components/
+   │  └─ ChatPanel.tsx
+   ├─ api/
+   │  └─ backend.ts
+   └─ config.ts
+docs/
+└─ genu-integration.md
+```
+
+---
+
+## 技術選定 (Phase 7-9)
+
+### NoSQL
+
+| 観点 | ScyllaDB Alternator | DynamoDB |
+|------|-------------------|----------|
+| ローカル開発 | ✓ (コンテナ) | ✗ (LocalStack必要) |
+| 互換性 | 70-80% (制限あり) | 100% |
+| コスト | 最小化可能 | 従量課金 |
+| 推奨用途 | 開発・ステージング | 本番 |
+
+**DynamoDB制限への対応:**
+- Alternator未実装: TTL、GSI の代替実装
+- テストで互換性検証
+- Alternator移行ガイドの提供
+
+### LLM Provider (Bedrock)
+
+**対応モデル:**
+```
+- テキスト生成: Claude 3 Sonnet/Opus
+- 埋め込み: Titan Embeddings
+- 画像認識: Claude 3 Vision
+```
+
+**ハイブリッド戦略:**
+```yaml
+llm:
+  default: bedrock          # メイン
+  planner: local/ollama     # 軽量タスク
+  embedding: bedrock        # 高品質
+```
+
+### AgentCore
+
+**対応:**
+- AWS Agents for Bedrock
+- Multi-turn memory
+- Tool (Knowledge Base, API, Database)
+
+**制限:**
+- AgentCore自体のラッピング必要
+- Local↔AWS の完全な切り替えは困難
+- 本番案件では AWS推奨
+
+### GenU
+
+**戦略:**
+- GenU Frontend のみ活用
+- Backend API境界を明確に
+- 完全な機能互換を目指さない
+- カスタム Backend への接続優先
+
+---
+
+## 実装優先度 (Phase 7-9)
+
+### 高優先度
+
+1. **Phase 7: Bedrock LLM** (多くのAWS案件で必要)
+2. **Phase 8: AgentCore Runtime** (本番環境の必須要件)
+
+### 中優先度
+
+3. **Phase 7: NoSQL (DynamoDB)** (GenU連携時に必要)
+4. **Phase 8: Canonical Graph Format** (運用効率化)
+
+### 低優先度
+
+5. **Phase 9: GenU Frontend** (カスタムUI優先)
+
+---
+
+## リスク・制限
+
+### Phase 7
+
+- **Alternator互換性**: DynamoDB の全機能を実装していない
+  - TTL、グローバルセカンダリインデックス (GSI) の一部
+  - 互換性マトリックスを提供し、AWS移行時の差分を最小化
+
+### Phase 8
+
+- **AgentCore API**: AWS固有で、ローカル相当物がない
+  - LangGraph/Strands を ローカル候補として維持
+  - 切り替え戻し不可 (単方向マイグレーション)
+
+### Phase 9
+
+- **GenU カスタマイズ**: GenU本体への大きな改修は避ける
+  - Frontend のコンポーネント利用に限定
+  - 独立した Backend API 設計を優先
 
 ---
 
 ## 次のステップ
 
+### Phase 1-6 (✓ 完了)
+
 1. ✅ バージョン依存関係マトリックスの確認
-2. → AGENTS.md 作成 (Agent/LLM Interface 設計)
-3. → RUNBOOK.md 作成 (起動・デプロイ手順)
-4. → ADR (Architecture Decision Record) 作成
-5. → Phase 1 コード実装開始
+2. ✅ AGENTS.md 作成 (Agent/LLM Interface 設計)
+3. ✅ RUNBOOK.md 作成 (起動・デプロイ手順)
+4. ✅ ADR (Architecture Decision Record) 作成
+5. ✅ Phase 1-6 実装完了
+
+### Phase 7-9 (→ 次フェーズ)
+
+1. **Phase 7: NoSQL & Bedrock**
+   - ScyllaDB Alternator setup
+   - DynamoDBAdapter実装
+   - BedrockLLMService実装
+   - Integration tests
+
+2. **Phase 8: AgentCore & Canonical Graph**
+   - AgentCoreRuntime実装
+   - Canonical format transformer
+   - Graph storage layer
+   - S3/MinIO serialization
+
+3. **Phase 9: GenU Frontend**
+   - GenU adapter layer
+   - Chat/Conversation API
+   - RAG unified service
+   - Frontend integration tests
+
+---
+
+## 技術スタック確認
+
+### Phase 7-9 追加ライブラリ
+
+```toml
+[project.optional-dependencies]
+# Phase 7
+nosql = [
+    "boto3>=1.28.85",  # DynamoDB
+]
+bedrock = [
+    "anthropic>=0.42.0",  # Claude Bedrock
+    "boto3>=1.28.85",
+]
+
+# Phase 8
+graph-storage = [
+    "pydantic>=2.10.4",  # Canonical models
+    "jsonlines>=4.0.0",  # JSONL serialization
+]
+
+# Phase 9
+genu = [
+    "httpx>=0.27.0",  # GenU backend calls
+    "websockets>=12.0",  # WebSocket support
+]
+```
+
+### Docker Images
+
+```yaml
+# Phase 7
+scylladb:
+  image: scylladb/scylla:latest
+  port: 9042
+
+# Phase 8-9 (local development)
+# No new images required
+```
 

@@ -33,10 +33,18 @@ class Settings(BaseSettings):
     rdf_sparql_endpoint: str = "http://localhost:8890/sparql"
     rdf_enabled: bool = False
 
+    # NoSQL (Phase 7+)
+    nosql_enabled: bool = False
+    nosql_engine: str = "dynamodb"  # dynamodb | scylladb
+    nosql_table_name: str = "fde-data"
+    scylladb_endpoint: str = "http://localhost:8000"
+    aws_region: str = "ap-northeast-1"
+
     # LLM (Phase 4+)
-    llm_provider: str = "local"
+    llm_provider: str = "local"  # local | bedrock
     ollama_base_url: str = "http://host.docker.internal:11434"
     ollama_model: str = "qwen3:8b"
+    bedrock_model_id: str = "anthropic.claude-3-sonnet-20240229-v1:0"
     embedding_model: str = "bge-m3"
 
     class Config:

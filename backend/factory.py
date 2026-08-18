@@ -7,6 +7,7 @@ from backend.services.graph import GraphService, Neo4jGraphService
 from backend.services.rdf import RDFService, VirtuosoRDFService
 from backend.services.agent import AgentService
 from backend.services.llm import LLMService, OllamaLLMService
+from backend.database.nosql.base import NoSQLRepository
 
 
 class ServiceFactory:
@@ -49,5 +50,34 @@ class ServiceFactory:
             return OllamaLLMService(
                 config.ollama_base_url,
                 config.ollama_model,
+            )
+        elif config.llm_provider == "bedrock":
+            from backend.services.bedrock import BedrockLLMService
+
+            return BedrockLLMService(
+                config.bedrock_model_id,
+                config.aws_region,
+            )
+        return None
+
+    @staticmethod
+    def create_nosql_service(config: Settings) -> Union[NoSQLRepository, None]:
+        """Create NoSQL service based on configuration"""
+        if not config.nosql_enabled:
+            return None
+
+        if config.nosql_engine == "dynamodb":
+            from backend.database.nosql.dynamodb import DynamoDBRepository
+
+            return DynamoDBRepository(
+                config.nosql_table_name,
+                config.aws_region,
+            )
+        elif config.nosql_engine == "scylladb":
+            from backend.database.nosql.scylladb import ScyllaDBRepository
+
+            return ScyllaDBRepository(
+                config.scylladb_endpoint,
+                config.nosql_table_name,
             )
         return None

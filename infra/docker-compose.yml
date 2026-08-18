@@ -172,6 +172,27 @@ services:
       - with-rdf
       - with-graph
 
+  # ScyllaDB Alternator (Phase 7+ NoSQL)
+  scylladb:
+    image: scylladb/scylla:latest
+    container_name: fde-scylladb
+    command: --listen-address 0.0.0.0 --rpc-address 0.0.0.0 --alternator-port 8000
+    environment:
+      SCYLLA_SEEDS: scylladb
+    ports:
+      - "9042:9042"
+      - "8000:8000"
+    volumes:
+      - scylladb_data:/var/lib/scylla
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8000 >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+    profiles:
+      - with-nosql
+
 volumes:
   postgres_data:
     driver: local
@@ -184,6 +205,8 @@ volumes:
   neo4j_logs:
     driver: local
   virtuoso_data:
+    driver: local
+  scylladb_data:
     driver: local
 
 networks:
