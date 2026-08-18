@@ -127,7 +127,7 @@ services:
     profiles:
       - with-search
 
-  # Neo4j (Phase 3+)
+  # Neo4j (Phase 3+ Property Graph)
   neo4j:
     image: neo4j:5.26.1-community
     container_name: fde-neo4j
@@ -150,6 +150,28 @@ services:
     profiles:
       - with-graph
 
+  # Virtuoso (Phase 3+ RDF)
+  virtuoso:
+    image: openlink/virtuoso-opensource-7:latest
+    container_name: fde-virtuoso
+    environment:
+      DBA_PASSWORD: dba
+      SPARQL_UPDATE: "true"
+    ports:
+      - "8890:8890"
+      - "1111:1111"
+    volumes:
+      - virtuoso_data:/var/lib/virtuoso/db
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8890/sparql >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+    profiles:
+      - with-rdf
+      - with-graph
+
 volumes:
   postgres_data:
     driver: local
@@ -160,6 +182,8 @@ volumes:
   neo4j_data:
     driver: local
   neo4j_logs:
+    driver: local
+  virtuoso_data:
     driver: local
 
 networks:

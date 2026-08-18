@@ -40,8 +40,11 @@ fde up
 # Phase 2 (with OpenSearch)
 docker compose -f infra/docker-compose.yml --profile with-search up -d
 
-# Phase 3 (with Neo4j)
+# Phase 3 (with Neo4j Property Graph)
 docker compose -f infra/docker-compose.yml --profile with-graph up -d
+
+# Phase 3 (with Virtuoso RDF/SPARQL)
+docker compose -f infra/docker-compose.yml --profile with-rdf up -d
 
 # All services
 docker compose -f infra/docker-compose.yml up -d

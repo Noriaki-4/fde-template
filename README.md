@@ -58,7 +58,7 @@ open http://localhost:8000/docs  # API Docs
 │    (5432)       │    (9000)        │ (*)  │
 └─────────────────┴──────────────────┴──────┘
   (*) Phase 2+: OpenSearch (9200)
-  (*) Phase 3+: Neo4j (7687)
+  (*) Phase 3+: Neo4j (7687) + Virtuoso SPARQL (8890)
 ```
 
 ---

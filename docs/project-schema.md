@@ -69,15 +69,26 @@ search:
   index: documents
 ```
 
-## graph
+## graph (Property Graph)
 
 ```yaml
 graph:
   enabled: true
-  model: property_graph  # property_graph | rdf
-  engine: neo4j  # neo4j | virtuoso
-  query_language: opencypher  # opencypher | sparql
+  model: property_graph
+  engine: neo4j
+  query_language: opencypher
   uri: neo4j://localhost:7687
+```
+
+## rdf (Semantic Graph)
+
+```yaml
+rdf:
+  enabled: true
+  model: rdf
+  engine: virtuoso  # virtuoso | other SPARQL endpoints
+  query_language: sparql
+  sparql_endpoint: http://localhost:8890/sparql
 ```
 
 ## agent

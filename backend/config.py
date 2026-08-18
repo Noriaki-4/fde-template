@@ -27,6 +27,12 @@ class Settings(BaseSettings):
     neo4j_password: str = "password"
     neo4j_enabled: bool = False
 
+    # RDF (Phase 3+)
+    rdf_model: str = "property_graph"  # property_graph | rdf
+    rdf_engine: str = "neo4j"  # neo4j | virtuoso
+    rdf_sparql_endpoint: str = "http://localhost:8890/sparql"
+    rdf_enabled: bool = False
+
     # LLM (Phase 4+)
     llm_provider: str = "local"
     ollama_base_url: str = "http://host.docker.internal:11434"

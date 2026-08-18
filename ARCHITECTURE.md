@@ -187,7 +187,8 @@ Configuration management
 | Object Storage | MinIO | S3 | S3 API |
 | Database | PostgreSQL | RDS | SQL |
 | Search | OpenSearch | OpenSearch Domain | REST |
-| Graph | Neo4j | Neptune | openCypher/SPARQL |
+| Property Graph | Neo4j | Neptune | openCypher |
+| RDF Graph | Virtuoso | Neptune | SPARQL |
 | Cache | Redis | ElastiCache | Redis Protocol |
 
 ## Error Handling Strategy
