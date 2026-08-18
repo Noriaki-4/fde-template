@@ -70,7 +70,7 @@ open http://localhost:8000/docs  # API Docs
 | [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | 実装ロードマップ (Phase 1-6) |
 | [AGENTS.md](AGENTS.md) | Agent / LLM 設計 (Phase 4+) |
 | [RUNBOOK.md](RUNBOOK.md) | 起動・デプロイ手順 |
-| [adr/](adr/) | アーキテクチャ決定記録 |
+| [adr/](../../adr/) | アーキテクチャ決定記録 |
 
 ---
 

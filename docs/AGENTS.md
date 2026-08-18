@@ -162,6 +162,6 @@ llm:
 ## 参考資料
 
 - [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) - 実装ロードマップ
-- [fde_modular_ai_platform_handoff_v2.md](docs/requirements/fde_modular_ai_platform_handoff_v2.md) - 全体設計
-- [ADR/002 - Local ↔ AWS Parity](adr/002-local-aws-parity.md)
+- [fde_modular_ai_platform_handoff_v2.md](../../docs/requirements/fde_modular_ai_platform_handoff_v2.md) - 全体設計
+- [ADR/002 - Local ↔ AWS Parity](../../adr/002-local-aws-parity.md)
 - [RUNBOOK.md](RUNBOOK.md) - 起動・デプロイ手順

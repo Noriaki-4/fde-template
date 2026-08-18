@@ -160,9 +160,9 @@ environment:
 ## Next Steps
 
 1. Read [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for detailed phase information
-2. Review [Architecture Decision Records](adr/) for design rationale
+2. Review [Architecture Decision Records](../../adr/) for design rationale
 3. Check [RUNBOOK.md](RUNBOOK.md) for operational procedures
-4. Explore [docs/](docs/) for additional documentation
+4. Explore [Documentation](./) for additional documentation
 
 ## CLI Commands (Phase 6)
 
