@@ -1,0 +1,39 @@
+profile: agent-enabled
+description: "RAG with Graph and Agent"
+
+ui:
+  enabled: true
+  type: gradio
+
+database:
+  relational:
+    enabled: true
+    engine: postgresql
+
+storage:
+  enabled: true
+  engine: minio
+
+search:
+  enabled: true
+  engine: opensearch
+
+graph:
+  enabled: true
+  model: property_graph
+  engine: neo4j
+  query_language: opencypher
+
+agent:
+  enabled: true
+  runtime: local
+  framework: strands
+
+llm:
+  enabled: true
+  provider: local
+  engine: ollama
+  model: qwen3:8b
+
+redis:
+  enabled: true

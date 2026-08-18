@@ -1,0 +1,28 @@
+profile: rag-basic
+description: "Basic RAG with search"
+
+ui:
+  enabled: true
+  type: gradio
+
+database:
+  relational:
+    enabled: true
+    engine: postgresql
+
+storage:
+  enabled: true
+  engine: minio
+
+search:
+  enabled: true
+  engine: opensearch
+
+graph:
+  enabled: false
+
+agent:
+  enabled: false
+
+redis:
+  enabled: false

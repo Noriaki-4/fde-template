@@ -1,0 +1,31 @@
+profile: graph-rag
+description: "RAG with Graph Database"
+
+ui:
+  enabled: true
+  type: gradio
+
+database:
+  relational:
+    enabled: true
+    engine: postgresql
+
+storage:
+  enabled: true
+  engine: minio
+
+search:
+  enabled: true
+  engine: opensearch
+
+graph:
+  enabled: true
+  model: property_graph
+  engine: neo4j
+  query_language: opencypher
+
+agent:
+  enabled: false
+
+redis:
+  enabled: false
