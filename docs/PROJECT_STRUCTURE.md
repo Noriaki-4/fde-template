@@ -100,7 +100,6 @@ fde-template/
 │
 ├── docs/
 │   ├── project-schema.md              # project.yaml schema
-│   ├── dependency-matrix.md           # Version management
 │   └── README.md                      # Documentation index
 │
 ├── adr/                               # Architecture Decision Records
