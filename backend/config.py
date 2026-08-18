@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     llm_provider: str = "ollama"  # ollama (qwen/gemma/mistral) | bedrock
     ollama_base_url: str = "http://host.docker.internal:11434"
     llm_model: str = "qwen:7b"  # ollama models: qwen:7b, gemma:4-e4b, mistral:7b, etc.
-    bedrock_model_id: str = "anthropic.claude-3-sonnet-20240229-v1:0"
+    bedrock_model_id: str = "anthropic.claude-3-5-sonnet-20241022-v2:0"
     embedding_model: str = "bge-m3"
 
     class Config:
