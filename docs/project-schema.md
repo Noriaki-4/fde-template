@@ -69,27 +69,52 @@ search:
   index: documents
 ```
 
-## graph (Property Graph)
+## graph.rdf (Graph Configuration)
+
+Choose ONE graph model per project:
+
+### Option A: Property Graph (Neo4j + openCypher)
 
 ```yaml
 graph:
   enabled: true
+
+rdf:
+  enabled: false
   model: property_graph
   engine: neo4j
-  query_language: opencypher
   uri: neo4j://localhost:7687
 ```
 
-## rdf (Semantic Graph)
+### Option B: Semantic Graph (Virtuoso + SPARQL)
 
 ```yaml
+graph:
+  enabled: false
+
 rdf:
   enabled: true
   model: rdf
-  engine: virtuoso  # virtuoso | other SPARQL endpoints
-  query_language: sparql
+  engine: virtuoso
   sparql_endpoint: http://localhost:8890/sparql
 ```
+
+### Option C: Both (Hybrid Graph)
+
+```yaml
+graph:
+  enabled: true
+
+rdf:
+  enabled: true
+  model: rdf
+  engine: virtuoso
+  sparql_endpoint: http://localhost:8890/sparql
+```
+
+**Endpoints:**
+- Property Graph: `POST /graph/query/cypher`
+- RDF Graph: `POST /graph/query/sparql`
 
 ## agent
 
