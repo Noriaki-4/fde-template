@@ -37,7 +37,7 @@ agent:
 llm:
   enabled: true
   provider: bedrock
-  model_id: anthropic.claude-3-sonnet-20240229-v1:0
+  bedrock_model_id: anthropic.claude-3-sonnet-20240229-v1:0
 
 redis:
   enabled: false

@@ -31,9 +31,8 @@ agent:
 
 llm:
   enabled: true
-  provider: local
-  engine: ollama
-  model: qwen3:8b
+  provider: ollama
+  model: qwen:7b
 
 redis:
   enabled: true

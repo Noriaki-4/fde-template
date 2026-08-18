@@ -130,19 +130,35 @@ agent:
 ```yaml
 llm:
   enabled: true
-  provider: local  # local | gemma | bedrock | anthropic | openai
-  engine: ollama  # ollama | huggingface
-  model: qwen3:8b
-  base_url: http://localhost:11434
+  provider: ollama  # ollama | bedrock
+  model: qwen:7b    # Ollama models: qwen, gemma, mistral, llama2, etc.
 ```
 
-### LLM Provider Options
+### LLM Providers
 
-- **local**: Ollama (Qwen, Llama, etc.)
-- **gemma**: Google Gemma 4 via Ollama
-- **bedrock**: AWS Bedrock (Claude, etc.)
-- **anthropic**: Anthropic API (future)
-- **openai**: OpenAI API (future)
+| Provider | Models | Source |
+|----------|--------|--------|
+| **ollama** | qwen:7b, gemma:4-e4b, mistral:7b, llama2:7b, etc. | Local (Ollama server) |
+| **bedrock** | claude-3-sonnet, claude-3-opus, etc. | AWS Bedrock |
+
+### Ollama Model Examples
+
+```yaml
+# Qwen (default)
+llm:
+  provider: ollama
+  model: qwen:7b
+
+# Gemma
+llm:
+  provider: ollama
+  model: gemma:4-e4b
+
+# Mistral
+llm:
+  provider: ollama
+  model: mistral:7b
+```
 
 ## redis
 

@@ -46,17 +46,11 @@ class ServiceFactory:
     @staticmethod
     def create_llm_service(config: Settings) -> Union[LLMService, None]:
         """Create LLM service based on configuration"""
-        if config.llm_provider == "local":
+        if config.llm_provider == "ollama":
+            # Ollama: supports qwen, gemma, mistral, etc.
             return OllamaLLMService(
                 config.ollama_base_url,
-                config.ollama_model,
-            )
-        elif config.llm_provider == "gemma":
-            from backend.services.llm import GemmaLLMService
-
-            return GemmaLLMService(
-                config.ollama_base_url,
-                config.gemma_model,
+                config.llm_model,
             )
         elif config.llm_provider == "bedrock":
             from backend.services.bedrock import BedrockLLMService
