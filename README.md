@@ -13,7 +13,6 @@ Modular, production-ready foundation for AI PoC (Phases 1-9) supporting local OS
 - **Implementation**: [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) — Phase roadmap
 - **Operations**: [RUNBOOK.md](docs/RUNBOOK.md) — Troubleshooting & deployment
 - **Structure**: [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) — Directory layout
-- **Config**: [docs/project-schema.md](docs/project-schema.md) — YAML schema reference
 
 ---
 

@@ -99,7 +99,6 @@ fde-template/
 │   └── docker-compose.yml             # Docker Compose config
 │
 ├── docs/
-│   ├── project-schema.md              # project.yaml schema
 │   └── README.md                      # Documentation index
 │
 ├── adr/                               # Architecture Decision Records

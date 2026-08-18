@@ -353,7 +353,7 @@ fde-cli/
 └─ config/
    ├─ profiles.yaml
    └─ schemas/
-      └─ project-schema.json
+      
 ```
 
 **Profile定義:**
