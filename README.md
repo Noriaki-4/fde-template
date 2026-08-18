@@ -119,7 +119,7 @@ Same code, different infrastructure.
 - **Troubleshooting**: [RUNBOOK.md](docs/RUNBOOK.md)
 - **Architecture**: [ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **API Docs**: http://localhost:8000/docs (after running)
-- **Config Schema**: [docs/project-schema.md](docs/project-schema.md)
+- **Profiles**: `profiles/` directory for configuration templates
 
 ---
 
