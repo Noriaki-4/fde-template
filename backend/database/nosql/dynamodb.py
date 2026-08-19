@@ -1,6 +1,7 @@
 """DynamoDB Adapter"""
 
 from typing import Any
+
 import boto3
 from botocore.exceptions import ClientError
 
@@ -36,12 +37,13 @@ class DynamoDBRepository(NoSQLRepository):
         except ClientError:
             return None
 
-    async def query(
-        self, index: str, condition: dict[str, Any]
-    ) -> list[dict[str, Any]]:
+    async def query(self, index: str, condition: dict[str, Any]) -> list[dict[str, Any]]:
         """Query items (simplified for DynamoDB)"""
         try:
-            kwargs = {"KeyConditionExpression": "pk = :pk", "ExpressionAttributeValues": {":pk": index}}
+            kwargs = {
+                "KeyConditionExpression": "pk = :pk",
+                "ExpressionAttributeValues": {":pk": index},
+            }
 
             response = self.table.query(**kwargs)
             items = response.get("Items", [])

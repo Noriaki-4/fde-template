@@ -7,7 +7,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from backend.config import Settings
 from backend.database.db import SessionLocal, init_db
 from backend.database.models import Document
 from backend.repositories.document import DocumentRepository

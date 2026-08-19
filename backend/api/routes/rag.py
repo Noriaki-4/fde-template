@@ -1,15 +1,14 @@
 """Unified RAG Routes - Search + Graph Integration"""
 
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
 from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from backend.database.db import get_db
-from backend.services.search import SearchService
-from backend.services.graph import GraphService
-from backend.services.rdf import RDFService
 from backend.services.rag import RAGService
+from backend.services.search import SearchService
 
 router = APIRouter()
 

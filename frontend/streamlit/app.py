@@ -1,27 +1,24 @@
-import streamlit as st
-import requests
 import os
-from typing import List, Dict
+from typing import Dict, List
+
+import requests
+import streamlit as st
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8000")
 
 st.set_page_config(
-    page_title="FDE Template",
-    page_icon="🚀",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_title="FDE Template", page_icon="🚀", layout="wide", initial_sidebar_state="expanded"
 )
 
 st.title("🚀 FDE PoC Platform")
 st.markdown("---")
 
+
 def search_documents(query: str, limit: int = 10) -> tuple[str, List[Dict]]:
     """ドキュメント検索"""
     try:
         response = requests.post(
-            f"{BACKEND_URL}/search/",
-            json={"query": query, "limit": limit},
-            timeout=10
+            f"{BACKEND_URL}/search/", json={"query": query, "limit": limit}, timeout=10
         )
         response.raise_for_status()
         data = response.json()
@@ -32,6 +29,7 @@ def search_documents(query: str, limit: int = 10) -> tuple[str, List[Dict]]:
         return "✗ Backend に接続できません", []
     except Exception as e:
         return f"✗ エラー: {str(e)}", []
+
 
 def check_health() -> str:
     """ヘルスチェック"""
@@ -45,6 +43,7 @@ def check_health() -> str:
         return "✗ Backend に接続できません"
     except Exception as e:
         return f"✗ エラー: {str(e)}"
+
 
 # サイドバー
 with st.sidebar:
@@ -61,13 +60,15 @@ with st.sidebar:
                 st.error(health)
 
     with tab_info:
-        st.markdown("""
+        st.markdown(
+            """
         **FDE Template Phase 1**
 
         - Backend API: http://backend:8000
         - Docs: http://backend:8000/docs
         - Frontend: Streamlit
-        """)
+        """
+        )
 
 # メインコンテンツ
 tab_search, tab_about = st.tabs(["🔍 検索", "ℹ️ について"])
@@ -78,9 +79,7 @@ with tab_search:
     col1, col2 = st.columns([3, 1])
     with col1:
         query = st.text_input(
-            "検索クエリ",
-            placeholder="検索キーワードを入力...",
-            label_visibility="collapsed"
+            "検索クエリ", placeholder="検索キーワードを入力...", label_visibility="collapsed"
         )
     with col2:
         limit = st.number_input("件数", min_value=1, max_value=100, value=10)
@@ -108,7 +107,8 @@ with tab_search:
             st.warning("検索キーワードを入力してください")
 
 with tab_about:
-    st.markdown("""
+    st.markdown(
+        """
     ### FDE Template について
 
     **Forward Deployed Engineer** 向けの再利用可能な AI PoC 基盤
@@ -130,7 +130,8 @@ with tab_about:
     - **Gradio**: `frontend/gradio/` (推奨)
     - **Streamlit**: `frontend/streamlit/` (このアプリ)
     - **Custom**: `frontend/custom/`
-    """)
+    """
+    )
 
 st.markdown("---")
 st.caption("FDE Template Phase 1 | Streamlit Frontend")

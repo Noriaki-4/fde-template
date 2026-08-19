@@ -8,7 +8,9 @@ class OpenSearchInterface(ABC):
     """Abstract OpenSearch Service Interface"""
 
     @abstractmethod
-    async def index(self, doc_id: str, content: str, metadata: dict[str, Any] | None = None) -> bool:
+    async def index(
+        self, doc_id: str, content: str, metadata: dict[str, Any] | None = None
+    ) -> bool:
         """Index document"""
         pass
 
@@ -40,10 +42,14 @@ class OpenSearchService(OpenSearchInterface):
         if not self._client:
             from opensearchpy import OpenSearch
 
-            self._client = OpenSearch([{"host": self.url.split("://")[1].split(":")[0], "port": 9200, "use_ssl": False}])
+            self._client = OpenSearch(
+                [{"host": self.url.split("://")[1].split(":")[0], "port": 9200, "use_ssl": False}]
+            )
         return self._client
 
-    async def index(self, doc_id: str, content: str, metadata: dict[str, Any] | None = None) -> bool:
+    async def index(
+        self, doc_id: str, content: str, metadata: dict[str, Any] | None = None
+    ) -> bool:
         try:
             client = await self._get_client()
             doc = {"content": content, **(metadata or {})}

@@ -72,5 +72,3 @@ class OllamaLLMService(LLMService):
                 return response.status_code == 200
         except Exception:
             return False
-
-

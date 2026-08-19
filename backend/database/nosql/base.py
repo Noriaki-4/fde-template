@@ -20,9 +20,7 @@ class NoSQLRepository(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    async def query(
-        self, index: str, condition: dict[str, Any]
-    ) -> list[dict[str, Any]]:
+    async def query(self, index: str, condition: dict[str, Any]) -> list[dict[str, Any]]:
         """Query items by condition"""
         pass
 

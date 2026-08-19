@@ -19,7 +19,11 @@ class GraphService(ABC):
 
     @abstractmethod
     async def create_relationship(
-        self, source_id: str, target_id: str, relation: str, properties: dict[str, Any] | None = None
+        self,
+        source_id: str,
+        target_id: str,
+        relation: str,
+        properties: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Create relationship between nodes"""
         pass
@@ -70,7 +74,9 @@ class Neo4jGraphService(GraphService):
         properties: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         cypher = f"MATCH (a), (b) WHERE a.id=$source_id AND b.id=$target_id CREATE (a)-[r:{relation}]->(b) RETURN r"
-        result = await self.query(cypher, {"source_id": source_id, "target_id": target_id} | (properties or {}))
+        result = await self.query(
+            cypher, {"source_id": source_id, "target_id": target_id} | (properties or {})
+        )
         return result[0] if result else {}
 
     async def delete_node(self, node_id: str) -> bool:

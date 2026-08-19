@@ -1,18 +1,21 @@
+from typing import List, Optional
+
+import structlog
+from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from typing import List, Optional
-import structlog
+
 from backend.repositories.document import DocumentRepository
-from backend.database.models import Document
-from pydantic import BaseModel
 
 logger = structlog.get_logger()
+
 
 class SearchResult(BaseModel):
     id: str
     title: str
     content: str
     metadata: Optional[dict] = None
+
 
 class SearchService:
     """検索サービス"""
@@ -29,16 +32,13 @@ class SearchService:
         results = self.doc_repo.search_by_content(query, skip=0, limit=limit)
 
         return [
-            SearchResult(
-                id=doc.id,
-                title=doc.title,
-                content=doc.content,
-                metadata=doc.doc_metadata
-            )
+            SearchResult(id=doc.id, title=doc.title, content=doc.content, metadata=doc.doc_metadata)
             for doc in results
         ]
 
-    async def index_document(self, doc_id: str, title: str, content: str, metadata: dict = None) -> bool:
+    async def index_document(
+        self, doc_id: str, title: str, content: str, metadata: dict = None
+    ) -> bool:
         """ドキュメントをインデックス"""
         try:
             self.doc_repo.create_or_update(doc_id, title, content, metadata)
@@ -63,10 +63,7 @@ class SearchService:
         doc = self.doc_repo.get_by_id(doc_id)
         if doc:
             return SearchResult(
-                id=doc.id,
-                title=doc.title,
-                content=doc.content,
-                metadata=doc.doc_metadata
+                id=doc.id, title=doc.title, content=doc.content, metadata=doc.doc_metadata
             )
         return None
 

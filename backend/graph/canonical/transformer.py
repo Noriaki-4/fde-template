@@ -1,8 +1,6 @@
 """Graph Transformer - Convert to/from Canonical Format"""
 
-from typing import Any
-
-from backend.graph.canonical.models import CanonicalNode, CanonicalRelation, CanonicalGraph
+from backend.graph.canonical.models import CanonicalGraph, CanonicalNode, CanonicalRelation
 
 
 class GraphTransformer:

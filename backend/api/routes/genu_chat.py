@@ -1,9 +1,9 @@
 """GenU-Compatible Chat API Routes (Phase 9)"""
 
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
-from typing import Any
 from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 from backend.config import get_config
 from backend.services.llm import LLMService

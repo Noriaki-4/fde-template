@@ -1,8 +1,8 @@
 """Graph Storage Service - S3/MinIO"""
 
-from typing import Any
-from minio import Minio
 import io
+
+from minio import Minio
 
 from backend.graph.canonical.models import CanonicalGraph
 from backend.graph.canonical.serializer import CanonicalGraphSerializer
@@ -40,9 +40,7 @@ class GraphStorageService:
     async def save_graph(self, graph_id: str, canonical: CanonicalGraph) -> bool:
         """Save canonical graph to S3"""
         try:
-            nodes_jsonl, relations_jsonl = CanonicalGraphSerializer.to_jsonl(
-                canonical
-            )
+            nodes_jsonl, relations_jsonl = CanonicalGraphSerializer.to_jsonl(canonical)
 
             # Save nodes
             nodes_data = io.BytesIO(nodes_jsonl.encode())
@@ -87,9 +85,7 @@ class GraphStorageService:
         """Load canonical graph from S3"""
         try:
             # Load nodes
-            nodes_response = self.client.get_object(
-                self.bucket, f"graphs/{graph_id}/nodes.jsonl"
-            )
+            nodes_response = self.client.get_object(self.bucket, f"graphs/{graph_id}/nodes.jsonl")
             nodes_data = nodes_response.read().decode()
 
             # Load relations
@@ -107,9 +103,7 @@ class GraphStorageService:
         """Delete graph from S3"""
         try:
             self.client.remove_object(self.bucket, f"graphs/{graph_id}/nodes.jsonl")
-            self.client.remove_object(
-                self.bucket, f"graphs/{graph_id}/relations.jsonl"
-            )
+            self.client.remove_object(self.bucket, f"graphs/{graph_id}/relations.jsonl")
             self.client.remove_object(self.bucket, f"graphs/{graph_id}/metadata.json")
             return True
         except Exception as e:

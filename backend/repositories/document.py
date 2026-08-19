@@ -1,8 +1,10 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
 from typing import List, Optional
+
+from sqlalchemy.orm import Session
+
 from backend.database.models import Document
 from backend.repositories.base import Repository
+
 
 class DocumentRepository(Repository[Document]):
     """Document Repository"""
@@ -27,13 +29,11 @@ class DocumentRepository(Repository[Document]):
     def find_by_metadata(self, key: str, value: str) -> List[Document]:
         """メタデータで検索"""
         # SQLAlchemy JSON フィルタリング
-        return (
-            self.db.query(Document)
-            .filter(Document.doc_metadata[key].astext == value)
-            .all()
-        )
+        return self.db.query(Document).filter(Document.doc_metadata[key].astext == value).all()
 
-    def create_or_update(self, doc_id: str, title: str, content: str, metadata: dict = None) -> Document:
+    def create_or_update(
+        self, doc_id: str, title: str, content: str, metadata: dict = None
+    ) -> Document:
         """作成または更新"""
         doc = self.get_by_id(doc_id)
         if doc:
@@ -45,10 +45,5 @@ class DocumentRepository(Repository[Document]):
             self.db.refresh(doc)
             return doc
         else:
-            new_doc = Document(
-                id=doc_id,
-                title=title,
-                content=content,
-                doc_metadata=metadata or {}
-            )
+            new_doc = Document(id=doc_id, title=title, content=content, doc_metadata=metadata or {})
             return self.create(new_doc)

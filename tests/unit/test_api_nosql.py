@@ -51,9 +51,7 @@ class TestNoSQLRoutes:
         app.dependency_overrides.pop(get_nosql_service, None)
 
     def test_put_and_get_item(self, client):
-        put_response = client.post(
-            "/nosql/items", json={"key": "item-1", "item": {"name": "test"}}
-        )
+        put_response = client.post("/nosql/items", json={"key": "item-1", "item": {"name": "test"}})
         assert put_response.status_code == 200
         assert put_response.json()["success"] is True
 

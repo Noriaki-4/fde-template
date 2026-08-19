@@ -2,10 +2,13 @@
 """Database 初期化スクリプト"""
 
 import sys
-from backend.database.db import init_db, drop_db
+
 import structlog
 
+from backend.database.db import drop_db, init_db
+
 logger = structlog.get_logger()
+
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "drop":
@@ -16,6 +19,7 @@ def main():
         logger.info("Initializing database...")
         init_db()
         logger.info("Database initialized")
+
 
 if __name__ == "__main__":
     main()

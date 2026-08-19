@@ -2,7 +2,7 @@
 
 import pytest
 
-from backend.graph.canonical.models import CanonicalNode, CanonicalRelation, CanonicalGraph
+from backend.graph.canonical.models import CanonicalGraph, CanonicalNode, CanonicalRelation
 from backend.graph.canonical.serializer import CanonicalGraphSerializer
 from backend.graph.canonical.transformer import GraphTransformer
 
@@ -39,9 +39,7 @@ class TestCanonicalGraph:
 
     def test_canonical_graph_add_relation(self):
         graph = CanonicalGraph()
-        rel = CanonicalRelation(
-            source="n1", target="n2", relation_type="REL"
-        )
+        rel = CanonicalRelation(source="n1", target="n2", relation_type="REL")
         graph.add_relation(rel)
 
         assert len(graph.relations) == 1
@@ -63,11 +61,7 @@ class TestCanonicalGraph:
         graph = CanonicalGraph()
         graph.add_node(CanonicalNode(id="n1", label="N1"))
         graph.add_node(CanonicalNode(id="n2", label="N2"))
-        graph.add_relation(
-            CanonicalRelation(
-                source="n1", target="n2", relation_type="REL"
-            )
-        )
+        graph.add_relation(CanonicalRelation(source="n1", target="n2", relation_type="REL"))
 
         nodes_jsonl, relations_jsonl = CanonicalGraphSerializer.to_jsonl(graph)
 
@@ -80,17 +74,11 @@ class TestCanonicalGraph:
         original_graph.add_node(CanonicalNode(id="n1", label="N1"))
         original_graph.add_node(CanonicalNode(id="n2", label="N2"))
         original_graph.add_relation(
-            CanonicalRelation(
-                source="n1", target="n2", relation_type="REL"
-            )
+            CanonicalRelation(source="n1", target="n2", relation_type="REL")
         )
 
-        nodes_jsonl, relations_jsonl = CanonicalGraphSerializer.to_jsonl(
-            original_graph
-        )
-        loaded_graph = CanonicalGraphSerializer.from_jsonl(
-            nodes_jsonl, relations_jsonl
-        )
+        nodes_jsonl, relations_jsonl = CanonicalGraphSerializer.to_jsonl(original_graph)
+        loaded_graph = CanonicalGraphSerializer.from_jsonl(nodes_jsonl, relations_jsonl)
 
         assert len(loaded_graph.nodes) == 2
         assert len(loaded_graph.relations) == 1
@@ -110,9 +98,7 @@ class TestCanonicalGraph:
             }
         ]
 
-        canonical = GraphTransformer.neo4j_to_canonical(
-            neo4j_nodes, neo4j_relations
-        )
+        canonical = GraphTransformer.neo4j_to_canonical(neo4j_nodes, neo4j_relations)
 
         assert len(canonical.nodes) == 2
         assert len(canonical.relations) == 1

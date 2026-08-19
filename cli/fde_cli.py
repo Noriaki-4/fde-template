@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
 """FDE Template CLI Tool"""
 
-import click
-import yaml
-import subprocess
 import os
+import subprocess
 from pathlib import Path
+
+import click
 import structlog
+import yaml
 
 logger = structlog.get_logger()
+
 
 @click.group()
 def cli():
     """FDE Template Command Line Interface"""
     pass
 
+
 @cli.command()
-@click.option('--profile', default='rag-basic', help='Profile name')
-@click.argument('project_name')
+@click.option("--profile", default="rag-basic", help="Profile name")
+@click.argument("project_name")
 def init(project_name, profile):
     """Initialize new FDE project"""
     logger.info("init_project", name=project_name, profile=profile)
@@ -42,31 +45,32 @@ def init(project_name, profile):
 
     click.echo(f"✓ Project '{project_name}' initialized with profile '{profile}'")
 
+
 @cli.command()
 def up():
     """Start containers"""
     logger.info("container_up")
     result = subprocess.run(
-        ["docker", "compose", "-f", "infra/docker-compose.yml", "up", "-d"],
-        cwd=os.getcwd()
+        ["docker", "compose", "-f", "infra/docker-compose.yml", "up", "-d"], cwd=os.getcwd()
     )
     if result.returncode == 0:
         click.echo("✓ Containers started")
     else:
         click.echo("✗ Failed to start containers")
 
+
 @cli.command()
 def down():
     """Stop containers"""
     logger.info("container_down")
     result = subprocess.run(
-        ["docker", "compose", "-f", "infra/docker-compose.yml", "down"],
-        cwd=os.getcwd()
+        ["docker", "compose", "-f", "infra/docker-compose.yml", "down"], cwd=os.getcwd()
     )
     if result.returncode == 0:
         click.echo("✓ Containers stopped")
     else:
         click.echo("✗ Failed to stop containers")
+
 
 @cli.command()
 def validate():
@@ -79,19 +83,18 @@ def validate():
     else:
         click.echo("✗ project.yaml not found")
 
+
 @cli.command()
-@click.option('--region', default='ap-northeast-1')
+@click.option("--region", default="ap-northeast-1")
 def deploy(region):
     """Deploy to AWS"""
     logger.info("deploy_aws", region=region)
-    result = subprocess.run(
-        ["cdk", "deploy", "--require-approval=never"],
-        cwd="cdk"
-    )
+    result = subprocess.run(["cdk", "deploy", "--require-approval=never"], cwd="cdk")
     if result.returncode == 0:
         click.echo(f"✓ Deployed to AWS ({region})")
     else:
         click.echo("✗ Deployment failed")
+
 
 if __name__ == "__main__":
     cli()

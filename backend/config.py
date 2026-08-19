@@ -1,5 +1,7 @@
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+from pydantic_settings import BaseSettings
+
 
 class Settings(BaseSettings):
     # App
@@ -50,6 +52,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env.local"
         case_sensitive = False
+
 
 @lru_cache()
 def get_config() -> Settings:

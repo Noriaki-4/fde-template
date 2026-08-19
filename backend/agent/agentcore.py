@@ -1,8 +1,9 @@
 """AWS Bedrock AgentCore Runtime"""
 
-from typing import Any
-import boto3
 import json
+from typing import Any
+
+import boto3
 
 from backend.services.agent import AgentService
 

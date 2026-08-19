@@ -1,14 +1,13 @@
 """Service Factory for Dependency Injection"""
 
 from typing import Union
+
 from backend.config import Settings
-from backend.services.search import SearchService
+from backend.database.nosql.base import NoSQLRepository
 from backend.services.graph import GraphService, Neo4jGraphService
-from backend.services.rdf import RDFService, VirtuosoRDFService
-from backend.services.agent import AgentService
 from backend.services.llm import LLMService, OllamaLLMService
 from backend.services.opensearch import OpenSearchInterface, OpenSearchService
-from backend.database.nosql.base import NoSQLRepository
+from backend.services.rdf import RDFService, VirtuosoRDFService
 
 
 class ServiceFactory:

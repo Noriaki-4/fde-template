@@ -1,8 +1,9 @@
 """AWS Bedrock LLM Service"""
 
-from typing import Any
-import boto3
 import json
+from typing import Any
+
+import boto3
 
 from backend.services.llm import LLMService
 

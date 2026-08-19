@@ -22,7 +22,12 @@ async def seed_graph():
     service = Neo4jGraphService(settings.neo4j_uri, settings.neo4j_user, settings.neo4j_password)
 
     # Create concept nodes
-    concepts = ["Machine Learning", "Natural Language Processing", "Knowledge Graphs", "Vector Databases"]
+    concepts = [
+        "Machine Learning",
+        "Natural Language Processing",
+        "Knowledge Graphs",
+        "Vector Databases",
+    ]
 
     for concept in concepts:
         cypher = "CREATE (c:Concept {name: $name}) RETURN c"

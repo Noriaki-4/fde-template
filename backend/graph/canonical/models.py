@@ -76,8 +76,7 @@ class CanonicalGraph:
     def add_relation(self, relation: CanonicalRelation) -> None:
         """Add relationship to graph"""
         if not any(
-            r.source == relation.source and r.target == relation.target
-            for r in self.relations
+            r.source == relation.source and r.target == relation.target for r in self.relations
         ):
             self.relations.append(relation)
 

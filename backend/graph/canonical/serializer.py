@@ -1,9 +1,9 @@
 """Canonical Graph Serialization (JSONL)"""
 
 import json
-from typing import Any, AsyncIterator
+from typing import AsyncIterator
 
-from backend.graph.canonical.models import CanonicalNode, CanonicalRelation, CanonicalGraph
+from backend.graph.canonical.models import CanonicalGraph, CanonicalNode, CanonicalRelation
 
 
 class CanonicalGraphSerializer:
@@ -12,13 +12,9 @@ class CanonicalGraphSerializer:
     @staticmethod
     def to_jsonl(canonical: CanonicalGraph) -> tuple[str, str]:
         """Convert to JSONL format (nodes.jsonl, relations.jsonl)"""
-        nodes_jsonl = "\n".join(
-            json.dumps(node.to_dict()) for node in canonical.nodes
-        )
+        nodes_jsonl = "\n".join(json.dumps(node.to_dict()) for node in canonical.nodes)
 
-        relations_jsonl = "\n".join(
-            json.dumps(rel.to_dict()) for rel in canonical.relations
-        )
+        relations_jsonl = "\n".join(json.dumps(rel.to_dict()) for rel in canonical.relations)
 
         return nodes_jsonl, relations_jsonl
 

@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
+
 from backend.config import get_config
 from backend.database.models import Base
 
@@ -13,6 +14,7 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -20,9 +22,11 @@ def get_db():
     finally:
         db.close()
 
+
 def init_db():
     """Database スキーマ作成"""
     Base.metadata.create_all(bind=engine)
+
 
 def drop_db():
     """Database スキーマ削除 (開発用)"""

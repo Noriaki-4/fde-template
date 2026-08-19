@@ -18,7 +18,9 @@ class RDFService(ABC):
         pass
 
     @abstractmethod
-    async def delete(self, subject: str, predicate: str | None = None, obj: str | None = None) -> bool:
+    async def delete(
+        self, subject: str, predicate: str | None = None, obj: str | None = None
+    ) -> bool:
         """Delete RDF triples"""
         pass
 
@@ -80,7 +82,9 @@ class VirtuosoRDFService(RDFService):
         except Exception:
             return False
 
-    async def delete(self, subject: str, predicate: str | None = None, obj: str | None = None) -> bool:
+    async def delete(
+        self, subject: str, predicate: str | None = None, obj: str | None = None
+    ) -> bool:
         try:
             # Build SPARQL DELETE WHERE query
             pattern = f"<{subject}>"

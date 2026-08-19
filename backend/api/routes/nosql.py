@@ -1,7 +1,8 @@
 """NoSQL Data Access Routes (Phase 7)"""
 
-from fastapi import APIRouter, HTTPException, Depends
 from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from backend.config import get_config
@@ -27,6 +28,7 @@ class BatchWriteRequest(BaseModel):
 async def get_nosql_service(config=Depends(get_config)) -> NoSQLRepository | None:
     """Get NoSQL service from app state"""
     from backend.api.main import get_nosql_service as _get_nosql_service
+
     return _get_nosql_service()
 
 

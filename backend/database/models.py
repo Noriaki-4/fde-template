@@ -1,8 +1,10 @@
-from sqlalchemy import Column, String, Text, DateTime, JSON, Integer
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
+from sqlalchemy import JSON, Column, DateTime, Integer, String, Text
+from sqlalchemy.ext.declarative import declarative_base
+
 Base = declarative_base()
+
 
 class Document(Base):
     __tablename__ = "documents"
@@ -17,6 +19,7 @@ class Document(Base):
     class Config:
         from_attributes = True
 
+
 class SearchIndex(Base):
     __tablename__ = "search_indices"
 
@@ -25,6 +28,7 @@ class SearchIndex(Base):
     index_name = Column(String(255), nullable=False, index=True)
     status = Column(String(50), default="pending")
     created_at = Column(DateTime, default=datetime.utcnow)
+
 
 class ProjectConfig(Base):
     __tablename__ = "project_configs"

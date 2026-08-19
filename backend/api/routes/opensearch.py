@@ -1,7 +1,8 @@
 """OpenSearch Routes (Phase 2)"""
 
-from fastapi import APIRouter, HTTPException, Depends
 from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from backend.config import get_config

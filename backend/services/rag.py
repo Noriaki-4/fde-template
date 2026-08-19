@@ -2,9 +2,9 @@
 
 from typing import Any
 
-from backend.services.search import SearchService
 from backend.services.graph import GraphService
 from backend.services.rdf import RDFService
+from backend.services.search import SearchService
 
 
 class RAGService:
@@ -20,9 +20,7 @@ class RAGService:
         self.graph_service = graph_service
         self.rdf_service = rdf_service
 
-    async def search(
-        self, query: str, include_graph: bool = False
-    ) -> dict[str, Any]:
+    async def search(self, query: str, include_graph: bool = False) -> dict[str, Any]:
         """Unified search across all sources"""
         results = {"query": query, "search_results": [], "graph_results": []}
 

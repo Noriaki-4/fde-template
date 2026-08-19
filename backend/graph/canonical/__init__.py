@@ -1,12 +1,12 @@
 """Canonical Graph Format Module"""
 
 from backend.graph.canonical.models import (
+    CanonicalGraph,
     CanonicalNode,
     CanonicalRelation,
-    CanonicalGraph,
 )
-from backend.graph.canonical.transformer import GraphTransformer
 from backend.graph.canonical.serializer import CanonicalGraphSerializer
+from backend.graph.canonical.transformer import GraphTransformer
 
 __all__ = [
     "CanonicalNode",

@@ -1,7 +1,8 @@
 """Integration tests for database layer"""
 
 import pytest
-from backend.database.db import SessionLocal, init_db, drop_db
+
+from backend.database.db import SessionLocal, drop_db, init_db
 from backend.database.models import Document
 from backend.repositories.document import DocumentRepository
 
