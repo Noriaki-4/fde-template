@@ -1,3 +1,4 @@
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import structlog
@@ -68,3 +69,12 @@ class SearchService:
                 metadata=doc.doc_metadata
             )
         return None
+
+    async def health_check(self) -> bool:
+        """DB 接続確認"""
+        try:
+            self.db.execute(text("SELECT 1"))
+            return True
+        except Exception as e:
+            logger.error("search_health_check_error", error=str(e))
+            return False
