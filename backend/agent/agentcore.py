@@ -1,4 +1,4 @@
-"""AWS AgentCore Runtime"""
+"""AWS Bedrock AgentCore Runtime"""
 
 from typing import Any
 import boto3
@@ -8,31 +8,29 @@ from backend.agent.runtime import AgentRuntime
 
 
 class AgentCoreRuntime(AgentRuntime):
-    """AWS AgentCore Runtime Implementation"""
+    """AWS Bedrock AgentCore Runtime Implementation"""
 
-    def __init__(self, agent_id: str, region: str = "ap-northeast-1"):
-        self.agent_id = agent_id
+    def __init__(self, agent_runtime_arn: str, region: str = "ap-northeast-1"):
+        self.agent_runtime_arn = agent_runtime_arn
         self.region = region
-        self.client = boto3.client("agentcore", region_name=region)
+        self.client = boto3.client("bedrock-agentcore", region_name=region)
 
     async def invoke(self, query: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Invoke AgentCore agent"""
+        """Invoke AgentCore runtime agent"""
         try:
-            payload = {
-                "agentId": self.agent_id,
-                "input": query,
-                "sessionId": context.get("session_id", "default") if context else "default",
-            }
+            session_id = context.get("session_id", "default") if context else "default"
+            payload = json.dumps({"query": query}).encode("utf-8")
 
-            response = self.client.invoke_agent(**payload)
+            response = self.client.invoke_agent_runtime(
+                agentRuntimeArn=self.agent_runtime_arn,
+                runtimeSessionId=session_id,
+                payload=payload,
+                contentType="application/json",
+                accept="application/json",
+            )
 
-            result = {"query": query, "response": "", "success": True}
-
-            for event in response.get("events", []):
-                if event.get("type") == "agent_output":
-                    result["response"] = event.get("output", {}).get("text", "")
-
-            return result
+            body = json.loads(response["response"].read())
+            return {"query": query, "response": body.get("output", body), "success": True}
         except Exception as e:
             return {
                 "query": query,
@@ -41,32 +39,36 @@ class AgentCoreRuntime(AgentRuntime):
             }
 
     async def stream(self, query: str, context: dict[str, Any] | None = None):
-        """Stream AgentCore response"""
+        """Stream AgentCore runtime response"""
         try:
-            payload = {
-                "agentId": self.agent_id,
-                "input": query,
-                "sessionId": context.get("session_id", "default") if context else "default",
-            }
+            session_id = context.get("session_id", "default") if context else "default"
+            payload = json.dumps({"query": query}).encode("utf-8")
 
-            response = self.client.invoke_agent(**payload)
+            response = self.client.invoke_agent_runtime(
+                agentRuntimeArn=self.agent_runtime_arn,
+                runtimeSessionId=session_id,
+                payload=payload,
+                contentType="application/json",
+                accept="application/json",
+            )
 
-            for event in response.get("events", []):
-                if event.get("type") == "agent_output":
-                    output = event.get("output", {}).get("text", "")
-                    if output:
-                        yield output
-                elif event.get("type") == "agent_trace":
-                    trace = event.get("trace", {}).get("thinking", "")
-                    if trace:
-                        yield f"[Trace] {trace}"
+            for chunk in response["response"].iter_chunks():
+                if chunk:
+                    yield chunk.decode("utf-8")
         except Exception as e:
             yield f"Streaming error: {str(e)}"
 
     async def health_check(self) -> bool:
-        """Verify AgentCore access"""
+        """Verify AgentCore runtime access"""
         try:
-            self.client.get_agent(agentId=self.agent_id)
+            response = self.client.invoke_agent_runtime(
+                agentRuntimeArn=self.agent_runtime_arn,
+                runtimeSessionId="health-check",
+                payload=json.dumps({"query": "ping"}).encode("utf-8"),
+                contentType="application/json",
+                accept="application/json",
+            )
+            response["response"].read()
             return True
         except Exception:
             return False

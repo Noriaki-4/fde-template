@@ -4,13 +4,30 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.api.main import app
+from backend.api.routes.genu_chat import get_llm_service
+from backend.services.llm import LLMService
+
+
+class FakeLLMService(LLMService):
+    """In-memory fake used to test the /chat routes without a real LLM backend"""
+
+    async def complete(self, prompt: str, **kwargs) -> str:
+        return f"Echo: {prompt}"
+
+    async def stream(self, prompt: str, **kwargs):
+        yield f"Echo: {prompt}"
+
+    async def health_check(self) -> bool:
+        return True
 
 
 @pytest.mark.unit
 class TestGenUChat:
     @pytest.fixture
     def client(self):
-        return TestClient(app)
+        app.dependency_overrides[get_llm_service] = lambda: FakeLLMService()
+        yield TestClient(app)
+        app.dependency_overrides.pop(get_llm_service, None)
 
     def test_create_conversation(self, client):
         response = client.post("/chat/conversations")

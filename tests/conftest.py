@@ -1,5 +1,6 @@
 import os
 os.environ.setdefault("NOSQL_ENABLED", "true")
+os.environ.setdefault("OPENSEARCH_ENABLED", "true")
 
 import pytest
 from sqlalchemy import create_engine

@@ -7,6 +7,7 @@ from backend.services.graph import GraphService, Neo4jGraphService
 from backend.services.rdf import RDFService, VirtuosoRDFService
 from backend.services.agent import AgentService
 from backend.services.llm import LLMService, OllamaLLMService
+from backend.services.opensearch import OpenSearchInterface, OpenSearchService
 from backend.database.nosql.base import NoSQLRepository
 
 
@@ -82,3 +83,11 @@ class ServiceFactory:
                 config.nosql_table_name,
             )
         return None
+
+    @staticmethod
+    def create_opensearch_service(config: Settings) -> Union[OpenSearchInterface, None]:
+        """Create OpenSearch service based on configuration"""
+        if not config.opensearch_enabled:
+            return None
+
+        return OpenSearchService(config.opensearch_url)

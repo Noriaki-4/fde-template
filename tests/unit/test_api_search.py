@@ -1,5 +1,4 @@
 import pytest
-from tests.conftest import client
 
 @pytest.mark.asyncio
 def test_search_empty(client):

@@ -10,6 +10,7 @@ from backend.services.graph import GraphService
 from backend.services.rdf import RDFService
 from backend.services.llm import LLMService
 from backend.database.nosql.base import NoSQLRepository
+from backend.services.opensearch import OpenSearchInterface
 
 logger = structlog.get_logger()
 
@@ -25,6 +26,7 @@ graph_service: GraphService | None = None
 rdf_service: RDFService | None = None
 llm_service: LLMService | None = None
 nosql_service: NoSQLRepository | None = None
+opensearch_service: OpenSearchInterface | None = None
 
 
 def get_graph_service() -> GraphService | None:
@@ -42,6 +44,10 @@ def get_llm_service() -> LLMService | None:
 def get_nosql_service() -> NoSQLRepository | None:
     return nosql_service
 
+
+def get_opensearch_service() -> OpenSearchInterface | None:
+    return opensearch_service
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -54,6 +60,11 @@ app.add_middleware(
 # Routers
 app.include_router(health.router)
 app.include_router(search.router, prefix="/search", tags=["search"])
+
+from backend.api.routes import rag
+
+app.include_router(rag.router, prefix="/rag", tags=["rag"])
+
 if config.rdf_enabled:
     from backend.api.routes import graph
 
@@ -64,6 +75,11 @@ if config.nosql_enabled:
 
     app.include_router(nosql.router, prefix="/nosql", tags=["nosql"])
 
+if config.opensearch_enabled:
+    from backend.api.routes import opensearch
+
+    app.include_router(opensearch.router, prefix="/opensearch", tags=["opensearch"])
+
 # GenU Chat API (Phase 9)
 from backend.api.routes import genu_chat
 
@@ -71,7 +87,7 @@ app.include_router(genu_chat.router, prefix="/chat", tags=["chat"])
 
 @app.on_event("startup")
 async def startup_event():
-    global graph_service, rdf_service, llm_service, nosql_service
+    global graph_service, rdf_service, llm_service, nosql_service, opensearch_service
 
     logger.info("Backend startup", config=config.model_dump())
     try:
@@ -96,6 +112,10 @@ async def startup_event():
     nosql_service = ServiceFactory.create_nosql_service(config)
     if nosql_service:
         logger.info("NoSQL service initialized", engine=config.nosql_engine)
+
+    opensearch_service = ServiceFactory.create_opensearch_service(config)
+    if opensearch_service:
+        logger.info("OpenSearch service initialized", url=config.opensearch_url)
 
 @app.on_event("shutdown")
 async def shutdown_event():

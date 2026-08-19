@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 
-class SearchService(ABC):
-    """Abstract Search Service Interface"""
+class OpenSearchInterface(ABC):
+    """Abstract OpenSearch Service Interface"""
 
     @abstractmethod
     async def index(self, doc_id: str, content: str, metadata: dict[str, Any] | None = None) -> bool:
@@ -28,7 +28,7 @@ class SearchService(ABC):
         pass
 
 
-class OpenSearchService(SearchService):
+class OpenSearchService(OpenSearchInterface):
     """OpenSearch Implementation"""
 
     def __init__(self, url: str, index: str = "documents"):
