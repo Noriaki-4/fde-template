@@ -6,13 +6,8 @@ Complete file tree and documentation for FDE Template.
 
 ```
 fde-template/
-├── README.md                          # Main documentation
-├── QUICKSTART.md                      # Quick start guide
-├── ARCHITECTURE.md                    # Architecture overview
-├── IMPLEMENTATION_PLAN.md             # Phase 1-6 roadmap
-├── RUNBOOK.md                         # Operational procedures
-├── AGENTS.md                          # Agent/LLM reference
-├── PROJECT_STRUCTURE.md               # This file
+├── README.md                          # Index / navigation (points into docs/)
+├── AGENTS.md                          # Agent/LLM reference (CLAUDE.md symlinks here)
 ├── Makefile                           # Common commands
 ├── setup.py                           # Python package setup
 ├── pyproject.toml                     # Dependencies & config
@@ -20,65 +15,80 @@ fde-template/
 ├── backend/                           # FastAPI backend
 │   ├── Dockerfile
 │   ├── api/
-│   │   ├── __init__.py
-│   │   ├── main.py                    # FastAPI app
+│   │   ├── main.py                    # FastAPI app, service wiring, router registration
 │   │   └── routes/
-│   │       ├── __init__.py
 │   │       ├── health.py              # Health check endpoint
-│   │       └── search.py              # Search endpoints (Phase 1)
+│   │       ├── search.py              # DB-backed document search (Phase 1)
+│   │       ├── rag.py                 # Unified RAG: search + graph + rdf
+│   │       ├── graph.py               # openCypher / SPARQL queries (Phase 3, gated by RDF_ENABLED)
+│   │       ├── nosql.py               # NoSQL CRUD (Phase 7, gated by NOSQL_ENABLED)
+│   │       ├── opensearch.py          # OpenSearch index/search (Phase 2, gated by OPENSEARCH_ENABLED)
+│   │       └── genu_chat.py           # GenU-compatible chat API (Phase 9), calls LLM service
 │   │
-│   ├── config.py                      # Settings & configuration
+│   ├── config.py                      # Settings (pydantic-settings, reads .env.local)
+│   ├── factory.py                     # ServiceFactory — creates service instances from config
 │   │
 │   ├── database/
-│   │   ├── __init__.py
-│   │   ├── db.py                      # Session management
-│   │   └── models.py                  # SQLAlchemy models
+│   │   ├── db.py                      # SQLAlchemy session management
+│   │   ├── models.py                  # SQLAlchemy ORM models (Document, SearchIndex, ProjectConfig)
+│   │   └── nosql/
+│   │       ├── base.py                # NoSQLRepository ABC
+│   │       ├── dynamodb.py            # DynamoDBRepository (boto3)
+│   │       └── scylladb.py            # ScyllaDBRepository (boto3 via Alternator API)
 │   │
 │   ├── repositories/
-│   │   ├── __init__.py
-│   │   ├── base.py                    # Base repository class
-│   │   └── document.py                # Document repository
+│   │   ├── base.py                    # Generic repository base class
+│   │   └── document.py                # Document repository (SQLAlchemy)
 │   │
 │   ├── services/
-│   │   ├── __init__.py
-│   │   ├── search.py                  # Search service (Phase 1)
-│   │   ├── opensearch.py              # OpenSearch (Phase 2)
-│   │   ├── graph.py                   # Graph service (Phase 3)
-│   │   ├── agent.py                   # Agent service (Phase 4)
-│   │   └── llm.py                     # LLM service (Phase 4)
+│   │   ├── search.py                  # SearchService — DB-backed document search (Phase 1)
+│   │   ├── opensearch.py              # OpenSearchInterface (ABC) + OpenSearchService (Phase 2)
+│   │   ├── graph.py                   # GraphService (ABC) + Neo4jGraphService (Phase 3)
+│   │   ├── rdf.py                     # RDFService (ABC) + VirtuosoRDFService (Phase 3)
+│   │   ├── rag.py                     # RAGService — composes search + graph + rdf
+│   │   ├── llm.py                     # LLMService (ABC) + OllamaLLMService (Phase 4)
+│   │   ├── bedrock.py                 # BedrockLLMService (Phase 4/7, AWS)
+│   │   └── agent.py                   # AgentService (ABC) + LocalAgentService — NOT wired into main.py
+│   │
+│   ├── agent/                         # Agent Runtime — implemented but NOT wired (see AGENTS.md)
+│   │   ├── runtime.py                 # AgentRuntime (ABC) + LocalAgentRuntime
+│   │   └── agentcore.py               # AgentCoreRuntime (AWS bedrock-agentcore)
 │   │
 │   ├── graph/
-│   │   ├── __init__.py
-│   │   └── neo4j_client.py            # Neo4j operations (Phase 3)
+│   │   ├── neo4j_client.py            # Standalone Neo4j client — unused duplicate of Neo4jGraphService
+│   │   └── canonical/                 # Canonical graph model (Phase 8) — used by graph_store.py only
+│   │       ├── models.py              # CanonicalNode / CanonicalRelation / CanonicalGraph dataclasses
+│   │       ├── transformer.py         # Neo4j / RDF → canonical format
+│   │       └── serializer.py          # Canonical graph (de)serialization
 │   │
-│   └── search/
-│       ├── __init__.py
-│       └── opensearch.py              # OpenSearch ops (Phase 2)
+│   └── storage/
+│       └── graph_store.py             # GraphStorageService — persists canonical graphs to MinIO/S3, NOT wired into main.py
 │
 ├── frontend/
 │   ├── gradio/
 │   │   ├── Dockerfile
-│   │   └── app.py                     # Gradio UI (推奨)
+│   │   └── app.py                     # Gradio UI (recommended)
 │   └── streamlit/
 │       ├── Dockerfile
-│       └── app.py                     # Streamlit UI
+│       └── app.py                     # Streamlit UI (alternative)
 │
-├── cli/                               # CLI (Phase 6)
-│   ├── __init__.py
-│   └── fde_cli.py                     # CLI commands
+├── cli/                                # CLI (Phase 6)
+│   └── fde_cli.py                     # CLI commands (init, up, down, validate, deploy)
 │
-├── cdk/                               # AWS CDK (Phase 5)
+├── cdk/                                # AWS CDK (Phase 5)
 │   ├── package.json
-│   ├── tsconfig.json
 │   ├── lib/
 │   │   └── fde_stack.py               # CDK stack definition
 │   └── bin/
 │       └── app.ts                     # CDK app entry
 │
-├── profiles/                          # Project profiles
-│   ├── rag-basic.yaml                 # Basic RAG profile
-│   ├── graph-rag.yaml                 # Graph RAG profile
-│   └── agent-enabled.yaml             # Agent-enabled profile
+├── profiles/                           # Config templates (not auto-loaded by the app — see below)
+│   ├── rag-basic.yaml
+│   ├── graph-rag.yaml
+│   ├── agent-enabled.yaml
+│   ├── aws-production.yaml
+│   ├── hybrid-bedrock-local.yaml
+│   └── gemma-local.yaml
 │
 ├── scripts/
 │   ├── init_db.py                     # Database initialization
@@ -86,118 +96,129 @@ fde-template/
 │   └── seed_graph.py                  # Graph data seeding
 │
 ├── tests/
-│   ├── conftest.py                    # Test configuration
+│   ├── conftest.py                    # Shared fixtures (db, client); sets NOSQL/OPENSEARCH_ENABLED=true
 │   ├── unit/
-│   │   ├── test_api_health.py         # Health check tests
-│   │   └── test_api_search.py         # Search tests
+│   │   ├── test_api_health.py
+│   │   ├── test_api_search.py
+│   │   ├── test_api_rag.py
+│   │   ├── test_api_nosql.py
+│   │   ├── test_api_opensearch.py
+│   │   ├── test_genu_chat.py          # Mocks the LLM dependency
+│   │   └── test_canonical_graph.py    # Tests canonical graph dataclasses/transformer/serializer only
 │   │
 │   └── integration/
-│       ├── test_database.py           # Database integration tests
-│       └── test_search.py             # Search integration tests
+│       └── test_database.py
 │
 ├── infra/
-│   └── docker-compose.yml             # Docker Compose config
+│   └── docker-compose.yml             # Postgres, MinIO, backend, gradio, streamlit, opensearch*, neo4j*, virtuoso*, scylladb*
+│                                       # (* behind compose profiles: with-search, with-graph, with-rdf, with-nosql)
 │
-├── docs/
-│   └── README.md                      # Documentation index
+├── docs/                               # All documentation (see docs/README.md for the index)
+│   ├── README.md
+│   ├── QUICKSTART.md
+│   ├── SETUP.md
+│   ├── USAGE.md
+│   ├── ARCHITECTURE.md
+│   ├── IMPLEMENTATION_PLAN.md
+│   ├── PROJECT_STRUCTURE.md           # This file
+│   ├── RUNBOOK.md
+│   └── requirements/
 │
-├── adr/                               # Architecture Decision Records
+├── adr/                                # Architecture Decision Records
 │   ├── 001-interface-first-architecture.md
-│   ├── 002-local-aws-parity.md
-│   └── README.md
+│   └── 002-local-aws-parity.md
 │
-├── .env.example                       # Environment template
-├── .gitignore                         # Git ignore rules
-├── .dockerignore                      # Docker ignore rules
-├── .pre-commit-config.yaml            # Pre-commit hooks
-├── .bandit.yaml                       # Bandit security config
+├── .env.example                        # Environment template
+├── .github/workflows/
+│   ├── test.yml
+│   └── deploy.yml
 │
-├── .github/
-│   └── workflows/
-│       ├── test.yml                   # CI: Test & Lint
-│       └── deploy.yml                 # CD: Deploy to AWS
-│
-└── LICENSE                            # License
+└── LICENSE
 ```
+
+**Note:** `AGENTS.md` and `README.md` live at the repository root; every other
+`.md` document lives under `docs/`. `CLAUDE.md` at the root is a symlink to
+`AGENTS.md`.
 
 ## File Descriptions
 
 ### Documentation Files
 
-| File | Purpose |
-|------|---------|
-| `README.md` | Main project documentation & overview |
-| `QUICKSTART.md` | Get started in 5 minutes |
-| `ARCHITECTURE.md` | System design & component breakdown |
-| `IMPLEMENTATION_PLAN.md` | Phase 1-6 roadmap with details |
-| `RUNBOOK.md` | Operations procedures & troubleshooting |
-| `AGENTS.md` | Agent/LLM integration reference |
-| `PROJECT_STRUCTURE.md` | This file - project layout |
+| File | Location | Purpose |
+|------|----------|---------|
+| `README.md` | root | Index / navigation into `docs/` |
+| `AGENTS.md` | root | Agent/LLM integration reference — what's wired vs. orphaned |
+| `docs/QUICKSTART.md` | docs/ | Get started in 5 minutes |
+| `docs/SETUP.md` | docs/ | Detailed installation |
+| `docs/USAGE.md` | docs/ | How to use this template for a new project |
+| `docs/ARCHITECTURE.md` | docs/ | System design & component breakdown |
+| `docs/IMPLEMENTATION_PLAN.md` | docs/ | Phase 1-9 roadmap with details |
+| `docs/RUNBOOK.md` | docs/ | Operations procedures & troubleshooting |
+| `docs/PROJECT_STRUCTURE.md` | docs/ | This file — project layout |
 
 ### Configuration Files
 
 | File | Purpose |
 |------|---------|
-| `pyproject.toml` | Python dependencies & build config |
+| `pyproject.toml` | Python dependencies & build config (single source of truth — no `requirements.txt`) |
 | `setup.py` | Package installation config |
-| `.env.example` | Environment variables template |
-| `.pre-commit-config.yaml` | Git hooks for code quality |
-| `.bandit.yaml` | Security scanning config |
+| `.env.example` | Environment variables template (read via `.env.local`, see `backend/config.py`) |
 
 ### Backend (`backend/`)
 
-| Module | Phase | Purpose |
-|--------|-------|---------|
-| `api/main.py` | 1 | FastAPI application setup |
-| `api/routes/` | 1-4 | HTTP endpoints by feature |
-| `config.py` | 1 | Settings & environment config |
-| `database/models.py` | 1 | SQLAlchemy ORM models |
-| `database/db.py` | 1 | Database session management |
-| `repositories/` | 1-3 | Data access layer |
-| `services/` | 1-4 | Business logic layer |
-| `search/opensearch.py` | 2 | Search implementation |
-| `graph/neo4j_client.py` | 3 | Graph database client |
+| Module | Phase | Wired? | Purpose |
+|--------|-------|--------|---------|
+| `api/main.py` | 1 | — | FastAPI app setup, service instantiation, router registration |
+| `api/routes/health.py`, `search.py` | 1 | Yes (always on) | Core health/search endpoints |
+| `api/routes/rag.py` | — | Yes (always on) | Unified search across search+graph+rdf |
+| `api/routes/graph.py` | 3 | Yes (if `RDF_ENABLED`) | openCypher / SPARQL endpoints |
+| `api/routes/nosql.py` | 7 | Yes (if `NOSQL_ENABLED`) | NoSQL CRUD endpoints |
+| `api/routes/opensearch.py` | 2 | Yes (if `OPENSEARCH_ENABLED`) | OpenSearch index/search endpoints |
+| `api/routes/genu_chat.py` | 9 | Yes (always on) | Chat API, calls the real LLM service |
+| `factory.py` | — | — | `ServiceFactory.create_*` — graph, rdf, llm, nosql, opensearch |
+| `services/agent.py`, `agent/runtime.py`, `agent/agentcore.py` | 4/8 | **No** | Implemented, no factory method, no route — see AGENTS.md |
+| `storage/graph_store.py`, `graph/canonical/*` | 8 | **No** | Implemented, no factory method, no route |
+| `graph/neo4j_client.py` | 3 | **No** | Unused duplicate of `services/graph.py`'s `Neo4jGraphService` |
 
 ### Frontend (`frontend/`)
 
-| File | Phase | Purpose |
-|------|-------|---------|
-| `gradio/app.py` | 1 | Gradio web UI |
-| `gradio/Dockerfile` | 1 | Frontend container |
+| File | Purpose |
+|------|---------|
+| `gradio/app.py`, `gradio/Dockerfile` | Gradio UI (recommended default) |
+| `streamlit/app.py`, `streamlit/Dockerfile` | Streamlit UI (alternative) |
 
 ### Infrastructure
 
-| File | Phase | Purpose |
-|------|-------|---------|
-| `infra/docker-compose.yml` | 1-4 | Local container orchestration |
-| `cdk/lib/fde_stack.py` | 5 | AWS infrastructure as code |
-| `cdk/package.json` | 5 | Node.js dependencies for CDK |
+| File | Purpose |
+|------|---------|
+| `infra/docker-compose.yml` | Local container orchestration; optional services behind compose `profiles` |
+| `cdk/lib/fde_stack.py` | AWS infrastructure as code (Phase 5) |
 
 ### CLI & Profiles (Phase 6)
 
 | File | Purpose |
 |------|---------|
-| `cli/fde_cli.py` | CLI commands (init, up, down, deploy) |
-| `profiles/rag-basic.yaml` | Basic RAG configuration |
-| `profiles/graph-rag.yaml` | Graph-enabled configuration |
-| `profiles/agent-enabled.yaml` | Full AI agent stack |
+| `cli/fde_cli.py` | CLI commands (`init`, `up`, `down`, `validate`, `deploy`) |
+| `profiles/*.yaml` | Reference configuration templates. **Not auto-loaded**: `cli/fde_cli.py init` writes a hardcoded `project.yaml`, it does not read these files; `backend/config.py` reads only environment variables (`.env.local`), not `project.yaml`. Use a profile's values as a source to copy into `.env.local`. |
 
 ### Testing
 
-| File | Type | Phase | Purpose |
-|------|------|-------|---------|
-| `tests/conftest.py` | Setup | 1 | Test configuration & fixtures |
-| `tests/unit/test_api_health.py` | Unit | 1 | Health check tests |
-| `tests/unit/test_api_search.py` | Unit | 1 | Search endpoint tests |
-| `tests/integration/test_database.py` | Integration | 1 | Database layer tests |
+| File | Type | Notes |
+|------|------|-------|
+| `tests/conftest.py` | Setup | `client`/`db` fixtures; sets `NOSQL_ENABLED`/`OPENSEARCH_ENABLED=true` before app import so those routers register during tests |
+| `tests/unit/test_api_health.py`, `test_api_search.py` | Unit | Core endpoints |
+| `tests/unit/test_api_rag.py`, `test_api_nosql.py`, `test_api_opensearch.py` | Unit | Mock the underlying service via `app.dependency_overrides` |
+| `tests/unit/test_genu_chat.py` | Unit | Mocks the LLM dependency with a `FakeLLMService` |
+| `tests/unit/test_canonical_graph.py` | Unit | Tests canonical graph dataclasses only — not the storage/API layer |
+| `tests/integration/test_database.py` | Integration | Database layer |
 
 ### Scripts
 
-| File | Phase | Purpose |
-|------|-------|---------|
-| `scripts/init_db.py` | 1 | Create/reset database schema |
-| `scripts/seed_documents.py` | 1 | Load sample documents |
-| `scripts/seed_graph.py` | 3 | Load sample graph data |
+| File | Purpose |
+|------|---------|
+| `scripts/init_db.py` | Create/reset database schema |
+| `scripts/seed_documents.py` | Load sample documents |
+| `scripts/seed_graph.py` | Load sample graph data |
 
 ### CI/CD
 
@@ -206,100 +227,30 @@ fde-template/
 | `.github/workflows/test.yml` | Test & lint on every PR |
 | `.github/workflows/deploy.yml` | Deploy to AWS on main branch |
 
-## Phase Dependencies
-
-### Phase 1: Core
-```
-backend/config.py
-backend/api/main.py
-backend/database/models.py
-backend/repositories/base.py, document.py
-backend/services/search.py
-frontend/gradio/app.py
-tests/unit/test_api_*.py
-```
-
-### Phase 2: Search
-```
-Phase 1 + 
-backend/services/opensearch.py
-backend/search/opensearch.py
-```
-
-### Phase 3: Graph
-```
-Phase 2 +
-backend/services/graph.py
-backend/graph/neo4j_client.py
-scripts/seed_graph.py
-```
-
-### Phase 4: Agent/LLM
-```
-Phase 3 +
-backend/services/agent.py
-backend/services/llm.py
-```
-
-### Phase 5: AWS CDK
-```
-cdk/lib/fde_stack.py
-cdk/package.json
-.github/workflows/deploy.yml
-```
-
-### Phase 6: CLI & Profiles
-```
-cli/fde_cli.py
-profiles/*.yaml
-scripts/seed_*.py
-```
-
-## Important Files to Know
-
-### For Development
-- `pyproject.toml` - Add dependencies here
-- `backend/config.py` - Update settings
-- `Makefile` - Common commands
-
-### For Operations
-- `.env.example` - Environment setup
-- `RUNBOOK.md` - Operational procedures
-- `infra/docker-compose.yml` - Container services
-
-### For Deployment
-- `cdk/lib/fde_stack.py` - AWS infrastructure
-- `.github/workflows/deploy.yml` - CI/CD pipeline
-
-### For Learning
-- `ARCHITECTURE.md` - System design
-- `adr/` - Architecture decisions
-- `docs/` - Additional documentation
-
 ## Adding New Features
 
 1. **Add a model**: `backend/database/models.py`
 2. **Add a repository**: `backend/repositories/new_repo.py`
 3. **Add a service**: `backend/services/new_service.py`
-4. **Add routes**: `backend/api/routes/new_route.py`
-5. **Add tests**: `tests/unit/test_new_*.py`
-6. **Update config**: `backend/config.py`
-7. **Add to docker-compose**: `infra/docker-compose.yml`
+4. **Add a factory method**: `backend/factory.py` — `ServiceFactory.create_*`
+5. **Wire it into `backend/api/main.py`**: global variable, getter function, startup-event instantiation, conditional or unconditional router registration
+6. **Add routes**: `backend/api/routes/new_route.py`
+7. **Add tests**: `tests/unit/test_api_new.py`, overriding the route's dependency getter with a fake
+
+This is the exact pattern `graph`/`rdf`/`llm`/`nosql`/`opensearch`/`rag` all follow — a service implemented but skipping step 5 is the most common way a feature ends up orphaned (see AGENTS.md for currently-orphaned examples).
 
 ## Naming Conventions
 
-- **Classes**: PascalCase (DocumentRepository, SearchService)
-- **Functions**: snake_case (get_document, search_index)
-- **Files**: snake_case (document.py, search.py)
-- **Models**: Singular (Document, not Documents)
-- **Databases**: plural (documents table)
+- **Classes**: PascalCase (`DocumentRepository`, `SearchService`)
+- **Functions**: snake_case (`get_document`, `search_index`)
+- **Files**: snake_case (`document.py`, `search.py`)
+- **Models**: Singular (`Document`, not `Documents`)
+- **Databases**: plural (`documents` table)
 
 ## Code Organization Principles
 
 1. **Single Responsibility**: One class = one job
-2. **Dependency Injection**: FastAPI Depends()
+2. **Dependency Injection**: FastAPI `Depends()`
 3. **Repository Pattern**: Encapsulate data access
 4. **Service Layer**: Business logic separation
-5. **No Circular Imports**: Use TYPE_CHECKING if needed
-6. **Type Hints**: All public functions
-7. **Async/Await**: Throughout the stack
+5. **Async/Await**: Throughout the stack

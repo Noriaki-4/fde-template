@@ -260,26 +260,33 @@ graph:
 
 ### Phase 4: Agent / LLM 統合 (Week 6-7)
 
-**追加:**
-- Agent Runtime Interface
-- LocalAgentRuntime (Strands Agents / LangGraph)
-- LLMProvider Interface
-- LocalLLMProvider (Ollama)
-- Tool Framework
+**実装・配線済み:**
+- `LLMService` Interface + `OllamaLLMService`（`backend/services/llm.py`）
+- `BedrockLLMService`（`backend/services/bedrock.py`）
+- `ServiceFactory.create_llm_service` で `llm_provider` 設定から生成
+- `backend/api/routes/genu_chat.py` の Chat API から実際に呼び出し
 
-**新規依存:**
+**実装済みだが未配線:**
+- `AgentService` Interface + `LocalAgentService`（`backend/services/agent.py`）
+- `AgentRuntime` Interface + `LocalAgentRuntime`（`backend/agent/runtime.py`）
+- Tool Framework は未実装（`SearchTool`/`GraphTool` 等のクラスは存在しない）
+
+詳細は [AGENTS.md](../AGENTS.md) を参照。
+
+**依存関係:**
 ```toml
-strands-agents>=0.1.0    # or langchain-core, langgraph
-anthropic==0.42.0        # for Anthropic (optional)
-ollama==0.4.4            # local LLM client
+anthropic==0.42.0        # Bedrock 経由の Claude 呼び出し
+ollama==0.4.4            # ローカル LLM クライアント
+langgraph>=0.1.0         # Agent 層の依存（宣言のみ、未使用）
+langchain-core>=0.1.0    # 同上
 ```
 
-**Ollama integration:**
+**Ollama 設定例:**
 ```bash
-# .env.example
-LLM_PROVIDER=local
+# .env.local
+LLM_PROVIDER=ollama
+LLM_MODEL=gemma:4-e4b
 OLLAMA_BASE_URL=http://host.docker.internal:11434
-OLLAMA_MODEL=qwen3:8b
 ```
 
 ---
@@ -530,15 +537,19 @@ docker compose down
 | Phase 4 | Week 6-7 | Agent + LLM (Ollama) | v0.4.0 | ✓ |
 | Phase 5 | Week 8-9 | AWS CDK (RDS, S3, OpenSearch) | v0.5.0 | ✓ |
 | Phase 6 | Week 10 | CLI + Profile (3種) | v1.0.0 | ✓ |
-| Phase 7 | Week 11-12 | NoSQL + AWS Bedrock | v1.1.0 | → |
-| Phase 8 | Week 13-14 | AWS AgentCore + Graph中間形式 | v1.2.0 | → |
-| Phase 9 | Week 15 | GenU Frontend 統合 | v1.3.0 | → |
+| Phase 7 | Week 11-12 | NoSQL + AWS Bedrock | v1.1.0 | ✓ |
+| Phase 8 | Week 13-14 | AWS AgentCore + Graph中間形式 | v1.2.0 | △ 実装のみ、未配線 |
+| Phase 9 | Week 15 | GenU 互換 Chat API | v1.3.0 | ✓ (Chat API のみ。GenU Adapter/Frontend は未実装) |
 
 ---
 
-## Phase 7: NoSQL & AWS LLM (Week 11-12)
+## Phase 7: NoSQL & AWS LLM (Week 11-12) — ✓ 完了・配線済み
 
 **目標**: DynamoDB互換とAWS Bedrockの統合
+
+`ServiceFactory.create_nosql_service` / `create_llm_service`（bedrock 分岐）から
+生成され、`backend/api/main.py` の起動時に初期化、`backend/api/routes/nosql.py`
+（`NOSQL_ENABLED=true` で `/nosql/*` を有効化）から実際に呼び出される。
 
 **成果物:**
 
@@ -588,42 +599,36 @@ tests/
 
 ---
 
-## Phase 8: AWS AgentCore & Graph Canonical Format (Week 13-14)
+## Phase 8: AWS AgentCore & Graph Canonical Format (Week 13-14) — △ 実装のみ、未配線
 
 **目標**: AWS本番向けAgent統合とGraph中間形式
 
-**成果物:**
+**現状**: 以下のクラスはすべてコードとして存在し、単体では正しく動作するが、
+`ServiceFactory` に対応する `create_*` メソッドがなく、`backend/api/main.py`
+からも一切参照されない。有効化するには Factory メソッドの追加・起動時配線・
+ルートファイルの新規作成が必要（詳細は [AGENTS.md](../AGENTS.md)）。
 
 1. **AgentCore Runtime**
    - `backend/agent/agentcore.py`
-   - AgentCoreRuntime実装
-   - Tool/Service as API integration
-   - Config: `agent.runtime=agentcore`, `agent.agent_id`
+   - `AgentCoreRuntime`（`boto3` の `bedrock-agentcore` サービス、`invoke_agent_runtime` API を使用。`boto3>=1.34.0` 必須）
+   - Config: 未実装（`agent.*` 系の設定項目は `backend/config.py` に存在しない）
 
 2. **Graph Canonical Format**
    - `backend/graph/canonical/`
-   - CanonicalNode, CanonicalRelation (dataclass)
-   - Graph transformer (Property/RDF → Canonical)
-   - S3/MinIO serialization (JSONL format)
-   - Batch operations (nodes.jsonl, relations.jsonl)
+   - `CanonicalNode`, `CanonicalRelation`, `CanonicalGraph`（dataclass）
+   - Graph transformer（Property/RDF → Canonical）
+   - シリアライザ（`serializer.py`）
 
 3. **Storage Layer**
    - `backend/storage/graph_store.py`
-   - GraphStorageRepository
-   - S3/MinIO adapter
-   - Version management
+   - `GraphStorageService`（MinIO/S3 への永続化）
+   - Factory メソッドなし、未配線
 
 4. **Routes**
-   - `backend/api/routes/graph_canonical.py`
-   - GET /graph/export (Canonical format)
-   - POST /graph/import (from S3)
-   - Bulk operations
+   - 計画時は `backend/api/routes/graph_canonical.py`（`GET /graph/export`, `POST /graph/import`）を想定していたが、**実装されていない**。該当ファイル・エンドポイントは存在しない。
 
 5. **Tests**
-   - Canonical format serialization tests
-   - Graph transformation tests
-   - S3 storage tests
-   - AgentCore mock tests
+   - `tests/unit/test_canonical_graph.py` — dataclass / transformer / serializer の単体テストのみ。Storage 層・API 層・AgentCore の呼び出しを通したテストは無い。
 
 **ファイル:**
 ```
@@ -653,60 +658,40 @@ tests/
 
 ---
 
-## Phase 9: GenU Frontend Integration (Week 15)
+## Phase 9: GenU 互換 Chat API (Week 15) — ✓ Chat API のみ完了
 
 **目標**: GenUのFrontendから独自Backendへの接続
 
-**成果物:**
+**現状**: Chat/Conversation API と RAGService は実装・配線済み。GenU Adapter
+レイヤーと GenU 側フロントエンドは計画時から実装されておらず、当面の予定もない。
 
-1. **GenU Adapter**
-   - `backend/api/adapters/genu.py`
-   - GenU API互換レイヤー
-   - Request/Response transformation
-   - ChatMessage形式の標準化
+1. **GenU Adapter** — 未実装
+   - `backend/api/adapters/genu.py` は存在しない
+   - GenU 側との Request/Response 変換レイヤーは無い
 
-2. **Chat/Conversation API**
+2. **Chat/Conversation API** — ✓ 実装・配線済み
    - `backend/api/routes/genu_chat.py`
-   - POST /chat/conversations (create)
-   - POST /chat/messages (send)
-   - GET /chat/{conversation_id}/messages
-   - WebSocket for streaming (optional)
+   - `POST /chat/conversations`（会話作成）
+   - `POST /chat/conversations/{conversation_id}/messages`（メッセージ送信、`llm_service.complete()` を実際に呼び出す）
+   - `GET /chat/conversations/{conversation_id}`（会話取得。メッセージ一覧は会話オブジェクトに含まれる）
+   - `GET /chat/conversations`（一覧）、`DELETE /chat/conversations/{conversation_id}`
+   - 会話はインメモリ（`dict`）保存で、再起動すると消える。WebSocket ストリーミングは未実装。
 
-3. **Unified Service Layer**
-   - RAGService (Search + Graph統合)
-   - 統一Query Interface
-   - Response formatting
+3. **Unified Service Layer** — ✓ 実装・配線済み
+   - `RAGService`（`backend/services/rag.py`）— Search + Graph + RDF 統合
+   - `backend/api/routes/rag.py` — `POST /rag/search`, `GET /rag/context/{entity_id}`, `GET /rag/health`
 
-4. **Frontend Config**
-   - `frontend/genu/config.ts`
-   - Backend URL configuration
-   - Model selection UI
-   - Agent enable/disable toggle
+4. **Frontend Config** — 未実装
+   - `frontend/genu/` ディレクトリは存在しない（`frontend/gradio/`, `frontend/streamlit/` のみ）
 
-5. **Documentation**
-   - GenU統合ガイド
-   - API互換性マトリックス
-   - UI カスタマイズ例
-
-**ファイル:**
+**ファイル（実際に存在するもの）:**
 ```
 backend/
-├─ api/
-│  ├─ adapters/
-│  │  └─ genu.py
-│  └─ routes/
-│     └─ genu_chat.py
-├─ services/
+├─ api/routes/
+│  ├─ genu_chat.py
 │  └─ rag.py
-frontend/
-└─ genu/
-   ├─ components/
-   │  └─ ChatPanel.tsx
-   ├─ api/
-   │  └─ backend.ts
-   └─ config.ts
-docs/
-└─ genu-integration.md
+└─ services/
+   └─ rag.py
 ```
 
 ---
@@ -846,11 +831,11 @@ llm:
 [project.optional-dependencies]
 # Phase 7
 nosql = [
-    "boto3>=1.28.85",  # DynamoDB
+    "boto3>=1.34.0",  # DynamoDB
 ]
 bedrock = [
     "anthropic>=0.42.0",  # Claude Bedrock
-    "boto3>=1.28.85",
+    "boto3>=1.34.0",  # bedrock-agentcore サービスに 1.34.0+ が必要
 ]
 
 # Phase 8

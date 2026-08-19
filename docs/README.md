@@ -67,10 +67,10 @@ open http://localhost:8000/docs  # API Docs
 
 | ファイル | 説明 |
 |---------|------|
-| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | 実装ロードマップ (Phase 1-6) |
-| [AGENTS.md](../../AGENTS.md) | Agent / LLM 設計 (Phase 4+) |
+| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | 実装ロードマップ (Phase 1-9) |
+| [AGENTS.md](../AGENTS.md) | Agent / LLM 設計、実装済み/未配線の切り分け |
 | [RUNBOOK.md](RUNBOOK.md) | 起動・デプロイ手順 |
-| [adr/](../../adr/) | アーキテクチャ決定記録 |
+| [adr/](../adr/) | アーキテクチャ決定記録 |
 
 ---
 
@@ -145,16 +145,19 @@ docker compose -f infra/docker-compose.yml logs -f backend
 
 ## Phase ロードマップ
 
-| Phase | 期間 | 主要機能 |
-|-------|------|---------|
-| **Phase 1** | Week 1-2 | ✓ FastAPI + PostgreSQL + MinIO + Gradio |
-| Phase 2 | Week 3 | OpenSearch 統合 |
-| Phase 3 | Week 4-5 | Neo4j / RDF Graph 対応 |
-| Phase 4 | Week 6-7 | Agent / LLM 統合 |
-| Phase 5 | Week 8-9 | AWS CDK デプロイ |
-| Phase 6 | Week 10 | CLI / Profile 化 |
+| Phase | 主要機能 | 状態 |
+|-------|---------|------|
+| Phase 1 | FastAPI + PostgreSQL + MinIO + Gradio/Streamlit | ✓ 実装・配線済み |
+| Phase 2 | OpenSearch 統合 | ✓ 実装・配線済み（`OPENSEARCH_ENABLED=true` で有効化） |
+| Phase 3 | Neo4j / RDF Graph 対応 | ✓ 実装・配線済み（`RDF_ENABLED=true` で有効化） |
+| Phase 4 | LLM 統合（Ollama / Bedrock） | ✓ 実装・配線済み（Chat API から実際に呼び出し） |
+| Phase 5 | AWS CDK デプロイ | ✓ 実装済み |
+| Phase 6 | CLI / Profile 化 | ✓ 実装済み |
+| Phase 7 | NoSQL（DynamoDB / ScyllaDB） | ✓ 実装・配線済み（`NOSQL_ENABLED=true` で有効化） |
+| Phase 8 | Agent Runtime（AgentCore）/ Canonical Graph | △ 実装のみ、未配線（詳細は [AGENTS.md](../AGENTS.md)） |
+| Phase 9 | GenU 互換 Chat API | ✓ 実装・配線済み |
 
-**現在:** Phase 1（実装中）
+詳細は [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) を参照。
 
 ---
 
@@ -166,11 +169,11 @@ docker compose -f infra/docker-compose.yml logs -f backend
 
 ### Local ↔ AWS Parity
 - ローカルと AWS で同じアプリケーションコード
-- Config（project.yaml）で動作環境を切り替え
+- 環境変数（`.env.local`、`backend/config.py`）で動作環境を切り替え
 
 ### Modular Design
-- 各機能を ON/OFF できる（project.yaml）
-- プロジェクトに必要な機能だけ有効化
+- 各機能を `*_ENABLED` フラグで ON/OFF できる（`OPENSEARCH_ENABLED`, `RDF_ENABLED`, `NOSQL_ENABLED` 等）
+- `profiles/*.yaml` は構成例のリファレンス（アプリが自動で読み込むわけではない。値を `.env.local` にコピーして使う）
 
 ---
 

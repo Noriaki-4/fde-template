@@ -26,9 +26,8 @@ cd fde-template
 uv venv
 source .venv/bin/activate
 
-# 依存関係インストール
-uv pip install -r requirements.txt
-uv pip install -r requirements-dev.txt
+# 依存関係インストール（pyproject.toml から）
+uv pip install -e ".[dev]"
 
 # Node 依存関係 (CDK 用)
 cd cdk
@@ -49,8 +48,8 @@ cat .env.local | grep -E "DATABASE_URL|MINIO_|LLM_"
 **必須環境変数:**
 
 ```bash
-# Database
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fde_poc
+# Database（psycopg v3 ドライバを使うため +psycopg が必須）
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/fde_poc
 
 # Storage
 MINIO_ENDPOINT=minio:9000
@@ -58,14 +57,15 @@ MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=minioadmin
 MINIO_BUCKET=knowledge-root
 
-# LLM (ローカル)
-LLM_PROVIDER=local
+# LLM (ローカル・デフォルト)
+LLM_PROVIDER=ollama
+LLM_MODEL=gemma:4-e4b
 OLLAMA_BASE_URL=http://host.docker.internal:11434
-OLLAMA_MODEL=qwen3:8b
 EMBEDDING_MODEL=bge-m3
 
 # LLM (Bedrock - オプション)
 # LLM_PROVIDER=bedrock
+# BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
 # AWS_REGION=ap-northeast-1
 ```
 
@@ -169,32 +169,78 @@ curl -X POST http://localhost:8000/search/index \
 curl -X GET "http://localhost:8000/search?q=サンプル&limit=10"
 ```
 
-### 3.3 Agent API
+### 3.3 RAG API（常時有効）
 
 ```bash
-# Agent 実行
-curl -X POST http://localhost:8000/agent/execute \
+# 統合検索（ドキュメント + グラフ）
+curl -X POST http://localhost:8000/rag/search \
   -H "Content-Type: application/json" \
-  -d '{
-    "user_input": "PostgreSQL のバージョンは？",
-    "stream": false
-  }'
+  -d '{"query": "sample", "include_graph": false}'
 
-# Agent ステータス
-curl http://localhost:8000/agent/status
+# エンティティのコンテキスト取得
+curl http://localhost:8000/rag/context/doc-1
+
+# ヘルスチェック
+curl http://localhost:8000/rag/health
 ```
 
-### 3.4 Graph Query (Phase 3+)
+### 3.4 Graph Query (Phase 3+, RDF_ENABLED=true 時のみ)
 
 ```bash
-# グラフクエリ実行
-curl -X POST http://localhost:8000/graph/query \
+# openCypher クエリ実行（Neo4j）
+curl -X POST http://localhost:8000/graph/query/cypher \
   -H "Content-Type: application/json" \
   -d '{
     "query": "MATCH (n) RETURN n LIMIT 10",
     "params": {}
   }'
+
+# SPARQL クエリ実行（Virtuoso）
+curl -X POST http://localhost:8000/graph/query/sparql \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "SELECT * WHERE { ?s ?p ?o } LIMIT 10",
+    "params": {}
+  }'
 ```
+
+### 3.5 NoSQL API (Phase 7+, NOSQL_ENABLED=true 時のみ)
+
+```bash
+curl -X POST http://localhost:8000/nosql/items \
+  -H "Content-Type: application/json" \
+  -d '{"key": "item-1", "item": {"name": "test"}}'
+
+curl http://localhost:8000/nosql/items/item-1
+curl http://localhost:8000/nosql/health
+```
+
+### 3.6 OpenSearch API (Phase 2+, OPENSEARCH_ENABLED=true 時のみ)
+
+```bash
+curl -X POST http://localhost:8000/opensearch/index \
+  -H "Content-Type: application/json" \
+  -d '{"doc_id": "doc-1", "content": "sample text"}'
+
+curl -X POST http://localhost:8000/opensearch/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "sample", "limit": 10}'
+```
+
+### 3.7 Chat API (Phase 9, GenU 互換)
+
+```bash
+# 会話作成
+CONV_ID=$(curl -s -X POST http://localhost:8000/chat/conversations | jq -r '.id')
+
+# メッセージ送信（設定済み LLM Provider を実際に呼び出す）
+curl -X POST "http://localhost:8000/chat/conversations/$CONV_ID/messages" \
+  -H "Content-Type: application/json" \
+  -d "{\"conversation_id\": \"$CONV_ID\", \"message\": \"Hello\"}"
+```
+
+> **注**: Agent Runtime（`backend/agent/`）は実装のみでルーティングされておらず、
+> `/agent/*` エンドポイントは存在しない。詳細は [AGENTS.md](../AGENTS.md) を参照。
 
 ---
 
@@ -220,14 +266,15 @@ docker run -d \
 ### 4.2 モデルダウンロード
 
 ```bash
-# Qwen 3 (8B)
-ollama pull qwen3:8b
+# Gemma 4 (デフォルト、軽量)
+ollama pull gemma:4-e4b
 
 # BGE Embedding
 ollama pull bge-m3
 
-# Gemma (軽量)
-ollama pull gemma:2b
+# Qwen / Mistral (任意)
+ollama pull qwen:7b
+ollama pull mistral:7b
 
 # モデル一覧
 ollama list
@@ -242,7 +289,7 @@ curl http://localhost:11434/api/tags
 # 生成テスト
 curl -X POST http://localhost:11434/api/generate \
   -d '{
-    "model": "qwen3:8b",
+    "model": "gemma:4-e4b",
     "prompt": "Hello, how are you?",
     "stream": false
   }'
@@ -451,7 +498,7 @@ docker restart ollama
 ollama list
 
 # ダウンロード再試行
-ollama pull qwen3:8b
+ollama pull gemma:4-e4b
 ```
 
 ### 8.4 Docker イメージ更新
@@ -524,7 +571,7 @@ cd cdk && cdk deploy --require-approval=never && cd ..
 ## 参考資料
 
 - [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) - 実装ロードマップ
-- [AGENTS.md](../../AGENTS.md) - Agent/LLM 設計
-- [docker-compose.yml](../../infra/docker-compose.yml) - サービス構成
+- [AGENTS.md](../AGENTS.md) - Agent/LLM 設計
+- [docker-compose.yml](../infra/docker-compose.yml) - サービス構成
 - AWS デプロイ: `cdk/README.md`
 - API ドキュメント: `http://localhost:8000/docs`

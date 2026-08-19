@@ -13,24 +13,30 @@ FDE Template follows a modular, interface-first architecture supporting both loc
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Gradio UI (Frontend)                 │
+│              Gradio UI / Streamlit UI (Frontend)         │
 └─────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────┐
 │                   FastAPI (Backend)                      │
 ├─────────────────────────────────────────────────────────┤
-│  Routes (health.py, search.py, ...)                     │
+│  Routes (health, search, rag, graph, nosql,             │
+│          opensearch, genu_chat)                          │
 │  ↓                                                       │
-│  Services (SearchService, GraphService, AgentService)  │
+│  Services (SearchService, GraphService, RDFService,     │
+│            LLMService, RAGService, NoSQLRepository,      │
+│            OpenSearchInterface)                           │
 │  ↓                                                       │
-│  Repositories (DocumentRepository, GraphRepository)    │
+│  Repositories (DocumentRepository)                       │
 │  ↓                                                       │
-│  Database Layer (SQLAlchemy ORM, Models)               │
+│  Database Layer (SQLAlchemy ORM, Models)                │
 └─────────────────────────────────────────────────────────┘
          ↓              ↓              ↓
-    PostgreSQL      MinIO         OpenSearch/Neo4j
-    (Relational)  (Object)       (Search/Graph)
+    PostgreSQL      MinIO         OpenSearch/Neo4j/DynamoDB
+    (Relational)  (Object)       (Search/Graph/NoSQL)
 ```
+
+> Agent Runtime（`backend/agent/`, `backend/services/agent.py`）は実装のみで
+> 上記のリクエストフローには組み込まれていない。詳細は [AGENTS.md](../AGENTS.md)。
 
 ## Layer Breakdown
 
@@ -53,20 +59,29 @@ async def search(query: SearchQuery, service: SearchService = Depends()):
 
 ### 2. Services (`backend/services/`)
 
-Business logic encapsulation with abstract interfaces.
+Most services follow an ABC + concrete-implementation pattern; the DB-backed
+search service is the one exception (concrete class, constructed with a
+per-request `Session`).
 
 ```python
-class SearchService(ABC):
+class GraphService(ABC):
     @abstractmethod
-    async def search(self, query: str) -> list[Document]:
+    async def query(self, cypher: str, params: dict | None = None) -> list[dict]:
         pass
+
+class Neo4jGraphService(GraphService):
+    ...
 ```
 
-**Implementations:**
-- DatabaseSearchService (Phase 1)
-- OpenSearchService (Phase 2)
-- GraphQueryService (Phase 3)
-- AgentService (Phase 4)
+**Services and their concrete implementations:**
+- `SearchService` (`backend/services/search.py`) — concrete, DB-backed (Phase 1)
+- `OpenSearchInterface` (ABC) → `OpenSearchService` (Phase 2)
+- `GraphService` (ABC) → `Neo4jGraphService` (Phase 3)
+- `RDFService` (ABC) → `VirtuosoRDFService` (Phase 3)
+- `LLMService` (ABC) → `OllamaLLMService` / `BedrockLLMService` (Phase 4)
+- `NoSQLRepository` (ABC) → `DynamoDBRepository` / `ScyllaDBRepository` (Phase 7)
+- `RAGService` (`backend/services/rag.py`) — composes the above, no ABC
+- `AgentService` (ABC) → `LocalAgentService` (Phase 4) — **implemented but not wired**, see [AGENTS.md](../AGENTS.md)
 
 ### 3. Repositories (`backend/repositories/`)
 
@@ -107,32 +122,39 @@ Response ← Route ← Service ← Repository ← Database/Storage
 
 ## Configuration & Switching
 
-`project.yaml` controls feature activation:
+Environment variables (`.env.local`, read by `backend/config.py`'s
+`pydantic-settings` `Settings` class) control feature activation —
+**not** `project.yaml`. `profiles/*.yaml` are reference templates only;
+nothing in the app reads them automatically.
 
-```yaml
-search:
-  enabled: true
-  engine: opensearch
+```bash
+OPENSEARCH_ENABLED=true
+OPENSEARCH_URL=http://opensearch:9200
 ```
 
-Dependency Injection via FastAPI:
+Dependency Injection via FastAPI, following the pattern used for every
+wired service (`graph`, `rdf`, `llm`, `nosql`, `opensearch`):
 
 ```python
-@app.get("/search/")
-async def search(service: SearchService = Depends(get_search_service)):
-    # Service implementation is swapped at runtime
-    return await service.search(...)
+# backend/api/routes/opensearch.py
+async def get_opensearch_service(config=Depends(get_config)) -> OpenSearchInterface | None:
+    from backend.api.main import get_opensearch_service as _get
+    return _get()
+
+@router.get("/health")
+async def opensearch_health(service: OpenSearchInterface | None = Depends(get_opensearch_service)):
+    ...
 ```
 
-Factory pattern selects implementation:
+`ServiceFactory` (`backend/factory.py`) selects the implementation and is
+called once at app startup (`backend/api/main.py`'s `startup_event`):
 
 ```python
-def get_search_service(config: Settings) -> SearchService:
-    if config.search_enabled:
-        if config.search_engine == "opensearch":
-            return OpenSearchService(config.opensearch_url)
-        return DatabaseSearchService()
-    return None
+@staticmethod
+def create_opensearch_service(config: Settings) -> OpenSearchInterface | None:
+    if not config.opensearch_enabled:
+        return None
+    return OpenSearchService(config.opensearch_url)
 ```
 
 ## Phase Architecture
@@ -156,12 +178,11 @@ Phase 2 + Neo4j
          Graph Repository
 ```
 
-### Phase 4: Agent/LLM
+### Phase 4: LLM
 ```
-Phase 3 + Ollama/Claude
-         Agent Service
-         LLM Service
-         Redis Cache
+Phase 3 + Ollama/Bedrock
+         LLM Service (wired into Chat API)
+         Agent Service (implemented, not wired — see AGENTS.md)
 ```
 
 ### Phase 5: AWS Deployment
