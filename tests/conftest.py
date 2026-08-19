@@ -1,3 +1,6 @@
+import os
+os.environ.setdefault("NOSQL_ENABLED", "true")
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

@@ -9,6 +9,7 @@ from backend.factory import ServiceFactory
 from backend.services.graph import GraphService
 from backend.services.rdf import RDFService
 from backend.services.llm import LLMService
+from backend.database.nosql.base import NoSQLRepository
 
 logger = structlog.get_logger()
 
@@ -23,6 +24,7 @@ app = FastAPI(
 graph_service: GraphService | None = None
 rdf_service: RDFService | None = None
 llm_service: LLMService | None = None
+nosql_service: NoSQLRepository | None = None
 
 
 def get_graph_service() -> GraphService | None:
@@ -35,6 +37,10 @@ def get_rdf_service() -> RDFService | None:
 
 def get_llm_service() -> LLMService | None:
     return llm_service
+
+
+def get_nosql_service() -> NoSQLRepository | None:
+    return nosql_service
 
 # CORS middleware
 app.add_middleware(
@@ -53,6 +59,11 @@ if config.rdf_enabled:
 
     app.include_router(graph.router, prefix="/graph", tags=["graph"])
 
+if config.nosql_enabled:
+    from backend.api.routes import nosql
+
+    app.include_router(nosql.router, prefix="/nosql", tags=["nosql"])
+
 # GenU Chat API (Phase 9)
 from backend.api.routes import genu_chat
 
@@ -60,7 +71,7 @@ app.include_router(genu_chat.router, prefix="/chat", tags=["chat"])
 
 @app.on_event("startup")
 async def startup_event():
-    global graph_service, rdf_service, llm_service
+    global graph_service, rdf_service, llm_service, nosql_service
 
     logger.info("Backend startup", config=config.model_dump())
     try:
@@ -81,6 +92,10 @@ async def startup_event():
     llm_service = ServiceFactory.create_llm_service(config)
     if llm_service:
         logger.info("LLM service initialized", provider=config.llm_provider)
+
+    nosql_service = ServiceFactory.create_nosql_service(config)
+    if nosql_service:
+        logger.info("NoSQL service initialized", engine=config.nosql_engine)
 
 @app.on_event("shutdown")
 async def shutdown_event():
