@@ -21,17 +21,17 @@ class Settings(BaseSettings):
     opensearch_url: str = "http://localhost:9200"
     opensearch_enabled: bool = False
 
-    # Graph (Phase 3+)
+    # Property Graph (Phase 3+) — independent from RDF, can be enabled together
+    graph_enabled: bool = False
+    graph_engine: str = "neo4j"  # neo4j
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
     neo4j_password: str = "password"
-    neo4j_enabled: bool = False
 
-    # RDF (Phase 3+)
-    rdf_model: str = "property_graph"  # property_graph | rdf
-    rdf_engine: str = "neo4j"  # neo4j | virtuoso
-    rdf_sparql_endpoint: str = "http://localhost:8890/sparql"
+    # RDF Graph (Phase 3+) — independent from Property Graph, can be enabled together
     rdf_enabled: bool = False
+    rdf_engine: str = "virtuoso"  # virtuoso
+    rdf_sparql_endpoint: str = "http://localhost:8890/sparql"
 
     # NoSQL (Phase 7+)
     nosql_enabled: bool = False

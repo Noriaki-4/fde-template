@@ -20,7 +20,7 @@ fde-template/
 │   │       ├── health.py              # Health check endpoint
 │   │       ├── search.py              # DB-backed document search (Phase 1)
 │   │       ├── rag.py                 # Unified RAG: search + graph + rdf
-│   │       ├── graph.py               # openCypher / SPARQL queries (Phase 3, gated by RDF_ENABLED)
+│   │       ├── graph.py               # openCypher / SPARQL queries (Phase 3, gated by GRAPH_ENABLED / RDF_ENABLED)
 │   │       ├── nosql.py               # NoSQL CRUD (Phase 7, gated by NOSQL_ENABLED)
 │   │       ├── opensearch.py          # OpenSearch index/search (Phase 2, gated by OPENSEARCH_ENABLED)
 │   │       └── genu_chat.py           # GenU-compatible chat API (Phase 9), calls LLM service
@@ -50,12 +50,10 @@ fde-template/
 │   │   ├── bedrock.py                 # BedrockLLMService (Phase 4/7, AWS)
 │   │   └── agent.py                   # AgentService (ABC) + LocalAgentService — NOT wired into main.py
 │   │
-│   ├── agent/                         # Agent Runtime — implemented but NOT wired (see AGENTS.md)
-│   │   ├── runtime.py                 # AgentRuntime (ABC) + LocalAgentRuntime
-│   │   └── agentcore.py               # AgentCoreRuntime (AWS bedrock-agentcore)
+│   ├── agent/                         # AgentService implementation — NOT wired (see AGENTS.md)
+│   │   └── agentcore.py               # AgentCoreService (AWS bedrock-agentcore), implements AgentService
 │   │
 │   ├── graph/
-│   │   ├── neo4j_client.py            # Standalone Neo4j client — unused duplicate of Neo4jGraphService
 │   │   └── canonical/                 # Canonical graph model (Phase 8) — used by graph_store.py only
 │   │       ├── models.py              # CanonicalNode / CanonicalRelation / CanonicalGraph dataclasses
 │   │       ├── transformer.py         # Neo4j / RDF → canonical format
@@ -171,14 +169,13 @@ fde-template/
 | `api/main.py` | 1 | — | FastAPI app setup, service instantiation, router registration |
 | `api/routes/health.py`, `search.py` | 1 | Yes (always on) | Core health/search endpoints |
 | `api/routes/rag.py` | — | Yes (always on) | Unified search across search+graph+rdf |
-| `api/routes/graph.py` | 3 | Yes (if `RDF_ENABLED`) | openCypher / SPARQL endpoints |
+| `api/routes/graph.py` | 3 | Yes (if `GRAPH_ENABLED` or `RDF_ENABLED`) | openCypher / SPARQL endpoints — the two flags are independent and can both be on (hybrid graph) |
 | `api/routes/nosql.py` | 7 | Yes (if `NOSQL_ENABLED`) | NoSQL CRUD endpoints |
 | `api/routes/opensearch.py` | 2 | Yes (if `OPENSEARCH_ENABLED`) | OpenSearch index/search endpoints |
 | `api/routes/genu_chat.py` | 9 | Yes (always on) | Chat API, calls the real LLM service |
 | `factory.py` | — | — | `ServiceFactory.create_*` — graph, rdf, llm, nosql, opensearch |
-| `services/agent.py`, `agent/runtime.py`, `agent/agentcore.py` | 4/8 | **No** | Implemented, no factory method, no route — see AGENTS.md |
+| `services/agent.py`, `agent/agentcore.py` | 4/8 | **No** | Implemented, no factory method, no route — see AGENTS.md |
 | `storage/graph_store.py`, `graph/canonical/*` | 8 | **No** | Implemented, no factory method, no route |
-| `graph/neo4j_client.py` | 3 | **No** | Unused duplicate of `services/graph.py`'s `Neo4jGraphService` |
 
 ### Frontend (`frontend/`)
 

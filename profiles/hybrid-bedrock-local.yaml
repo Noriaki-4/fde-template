@@ -23,7 +23,6 @@ search:
 
 graph:
   enabled: true
-  model: property_graph
   engine: neo4j
 
 rdf:
@@ -37,7 +36,7 @@ agent:
 llm:
   enabled: true
   provider: bedrock
-  bedrock_model_id: anthropic.claude-3-sonnet-20240229-v1:0
+  bedrock_model_id: anthropic.claude-3-5-sonnet-20241022-v2:0
 
 redis:
   enabled: false

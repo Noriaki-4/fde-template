@@ -4,11 +4,11 @@ from typing import Any
 import boto3
 import json
 
-from backend.agent.runtime import AgentRuntime
+from backend.services.agent import AgentService
 
 
-class AgentCoreRuntime(AgentRuntime):
-    """AWS Bedrock AgentCore Runtime Implementation"""
+class AgentCoreService(AgentService):
+    """AWS Bedrock AgentCore Implementation"""
 
     def __init__(self, agent_runtime_arn: str, region: str = "ap-northeast-1"):
         self.agent_runtime_arn = agent_runtime_arn

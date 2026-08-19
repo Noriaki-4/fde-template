@@ -60,24 +60,51 @@ AWS_REGION=ap-northeast-1
 
 ---
 
-## Agent Runtime（実装のみ・未配線）
+## Property Graph / RDF（独立して併用可能）
 
-以下のクラスはコードとして存在するが、`ServiceFactory` に対応する
-`create_*` メソッドがなく、`backend/api/main.py` からも一切参照されない。
-API エンドポイントも存在しない（`/agent/*` ルートは無い）。有効化するには
-Factory メソッドの追加・`main.py` への起動時配線・ルートファイルの新規作成が必要。
+`GRAPH_ENABLED`（Neo4j / openCypher）と `RDF_ENABLED`（Virtuoso / SPARQL）は
+互いに独立したフラグで、**両方同時に有効化できる**（ハイブリッドグラフ構成）。
+
+```bash
+GRAPH_ENABLED=true
+GRAPH_ENGINE=neo4j
+
+RDF_ENABLED=true
+RDF_ENGINE=virtuoso
+```
+
+`RAGService`（`backend/services/rag.py`）は `graph_service` と `rdf_service` を
+両方受け取り、`include_graph=true` のとき両方に対してクエリを実行する設計になっている
+（`/rag/search` エンドポイント）。以前は単一の `rdf_model` フラグ
+（`"property_graph" | "rdf"` の排他選択）で両者を同時に有効化できず、
+RAGService の設計と矛盾していたため、`graph_enabled` / `rdf_enabled` の
+独立フラグに分離した。
+
+---
+
+## Agent（実装のみ・未配線）
+
+**Interface**: `AgentService`（`backend/services/agent.py`）— このコードベースの
+他の全サービス（`GraphService`, `RDFService`, `LLMService`, `NoSQLRepository`,
+`OpenSearchInterface`）と同じ、プリミティブ引数（`query: str`, `context: dict`）
+の ABC + 実装パターンに統一されている。
 
 | クラス | ファイル | 状態 |
 |---|---|---|
-| `AgentRuntime` (ABC), `LocalAgentRuntime` | `backend/agent/runtime.py` | 未配線 |
-| `AgentCoreRuntime` | `backend/agent/agentcore.py` | 未配線。boto3 `bedrock-agentcore` サービスと `invoke_agent_runtime` API を使用（要 `boto3>=1.34.0`） |
 | `AgentService` (ABC), `LocalAgentService` | `backend/services/agent.py` | 未配線 |
+| `AgentCoreService` | `backend/agent/agentcore.py` | 未配線。`AgentService` を実装。boto3 `bedrock-agentcore` サービスと `invoke_agent_runtime` API を使用（要 `boto3>=1.34.0`） |
 
-**既知の不整合**: `AgentCoreRuntime.invoke(query: str, context: dict)` は
-親クラス `AgentRuntime.invoke(request: AgentRequest) -> AgentResponse`
-のシグネチャと一致していない（`AgentService` 側のシグネチャに揃っている）。
-現状どちらのクラスからも呼ばれていないため実害はないが、配線時は
-シグネチャの整合を取ること。
+以下のクラスはコードとして存在し `AgentService` を正しく実装しているが、
+`ServiceFactory` に対応する `create_*` メソッドがなく、`backend/api/main.py`
+からも一切参照されない。API エンドポイントも存在しない（`/agent/*` ルートは無い）。
+有効化するには Factory メソッドの追加・`main.py` への起動時配線・ルートファイルの
+新規作成が必要（`nosql`/`opensearch` が追加されたときと同じ手順、`PROJECT_STRUCTURE.md`
+の「Adding New Features」参照）。
+
+> 以前は `AgentRuntime`（dataclass ベースの別 ABC、`backend/agent/runtime.py`）が
+> 並存し、`AgentCoreRuntime` がそれを継承しながら実際には `AgentService` 型の
+> シグネチャで実装されている不整合（LSP 違反）があった。`AgentRuntime` を廃止し、
+> `AgentCoreService` として `AgentService` を直接実装する形に統合済み。
 
 ---
 

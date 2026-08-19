@@ -24,7 +24,6 @@ search:
 
 graph:
   enabled: true
-  model: property_graph
   engine: neptune
 
 rdf:

@@ -65,7 +65,7 @@ from backend.api.routes import rag
 
 app.include_router(rag.router, prefix="/rag", tags=["rag"])
 
-if config.rdf_enabled:
+if config.graph_enabled or config.rdf_enabled:
     from backend.api.routes import graph
 
     app.include_router(graph.router, prefix="/graph", tags=["graph"])
@@ -99,7 +99,7 @@ async def startup_event():
     # Initialize services based on configuration
     graph_service = ServiceFactory.create_graph_service(config)
     if graph_service:
-        logger.info("Graph service initialized", engine=config.rdf_engine)
+        logger.info("Graph service initialized", engine=config.graph_engine)
 
     rdf_service = ServiceFactory.create_rdf_service(config)
     if rdf_service:

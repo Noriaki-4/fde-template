@@ -1,4 +1,8 @@
-"""Agent Service for Phase 4"""
+"""Agent Service for Phase 4
+
+Canonical Agent interface for this codebase. `backend/agent/agentcore.py`'s
+`AgentCoreService` implements this same ABC for AWS Bedrock AgentCore.
+"""
 
 from abc import ABC, abstractmethod
 from typing import Any
@@ -24,20 +28,17 @@ class AgentService(ABC):
 
 
 class LocalAgentService(AgentService):
-    """Local Agent Implementation"""
-
-    def __init__(self, runtime):
-        self.runtime = runtime
+    """Local (no external dependency) Agent Implementation — echoes the query"""
 
     async def invoke(self, query: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute query and return result"""
-        return await self.runtime.invoke(query, context or {})
+        return {"query": query, "response": f"Response to: {query}", "success": True}
 
     async def stream(self, query: str, context: dict[str, Any] | None = None):
-        """Stream query results"""
-        async for chunk in self.runtime.stream(query, context or {}):
-            yield chunk
+        """Stream query results word-by-word"""
+        for word in query.split():
+            yield word + " "
 
     async def health_check(self) -> bool:
-        """Verify runtime health"""
-        return await self.runtime.health_check()
+        """Local implementation is always available"""
+        return True

@@ -247,13 +247,13 @@ neo4j==5.27.0
 rdflib==7.1.1  # RDF支援
 ```
 
-**project.yaml での切り替え:**
-```yaml
-graph:
-  enabled: true
-  model: property_graph  # or "rdf"
-  engine: neo4j          # or "jena"
-  query_language: opencypher  # or "sparql"
+**環境変数での切り替え（`GRAPH_ENABLED` と `RDF_ENABLED` は独立、両方 true でハイブリッド構成可）:**
+```bash
+GRAPH_ENABLED=true
+GRAPH_ENGINE=neo4j
+
+RDF_ENABLED=true
+RDF_ENGINE=virtuoso
 ```
 
 ---
@@ -268,7 +268,7 @@ graph:
 
 **実装済みだが未配線:**
 - `AgentService` Interface + `LocalAgentService`（`backend/services/agent.py`）
-- `AgentRuntime` Interface + `LocalAgentRuntime`（`backend/agent/runtime.py`）
+- `AgentCoreService`（`backend/agent/agentcore.py`、`AgentService` を実装）
 - Tool Framework は未実装（`SearchTool`/`GraphTool` 等のクラスは存在しない）
 
 詳細は [AGENTS.md](../AGENTS.md) を参照。
@@ -608,9 +608,9 @@ tests/
 からも一切参照されない。有効化するには Factory メソッドの追加・起動時配線・
 ルートファイルの新規作成が必要（詳細は [AGENTS.md](../AGENTS.md)）。
 
-1. **AgentCore Runtime**
+1. **AgentCore**
    - `backend/agent/agentcore.py`
-   - `AgentCoreRuntime`（`boto3` の `bedrock-agentcore` サービス、`invoke_agent_runtime` API を使用。`boto3>=1.34.0` 必須）
+   - `AgentCoreService`（`AgentService` を実装。`boto3` の `bedrock-agentcore` サービス、`invoke_agent_runtime` API を使用。`boto3>=1.34.0` 必須）
    - Config: 未実装（`agent.*` 系の設定項目は `backend/config.py` に存在しない）
 
 2. **Graph Canonical Format**
@@ -810,7 +810,7 @@ llm:
    - Integration tests
 
 2. **Phase 8: AgentCore & Canonical Graph**
-   - AgentCoreRuntime実装
+   - AgentCoreService実装
    - Canonical format transformer
    - Graph storage layer
    - S3/MinIO serialization
