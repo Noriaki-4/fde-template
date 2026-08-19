@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # Database
-    database_url: str = "postgresql://postgres:postgres@localhost:5432/fde_poc"
+    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/fde_poc"
 
     # Storage
     minio_endpoint: str = "minio:9000"

@@ -32,7 +32,7 @@ class SearchService:
                 id=doc.id,
                 title=doc.title,
                 content=doc.content,
-                metadata=doc.metadata
+                metadata=doc.doc_metadata
             )
             for doc in results
         ]
@@ -65,6 +65,6 @@ class SearchService:
                 id=doc.id,
                 title=doc.title,
                 content=doc.content,
-                metadata=doc.metadata
+                metadata=doc.doc_metadata
             )
         return None

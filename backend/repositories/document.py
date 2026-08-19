@@ -29,7 +29,7 @@ class DocumentRepository(Repository[Document]):
         # SQLAlchemy JSON フィルタリング
         return (
             self.db.query(Document)
-            .filter(Document.metadata[key].astext == value)
+            .filter(Document.doc_metadata[key].astext == value)
             .all()
         )
 
@@ -40,7 +40,7 @@ class DocumentRepository(Repository[Document]):
             doc.title = title
             doc.content = content
             if metadata:
-                doc.metadata = metadata
+                doc.doc_metadata = metadata
             self.db.commit()
             self.db.refresh(doc)
             return doc
@@ -49,6 +49,6 @@ class DocumentRepository(Repository[Document]):
                 id=doc_id,
                 title=title,
                 content=content,
-                metadata=metadata or {}
+                doc_metadata=metadata or {}
             )
             return self.create(new_doc)
