@@ -70,6 +70,15 @@ fde-template/
 │       ├── Dockerfile
 │       └── app.py                     # Streamlit UI (alternative)
 │
+├── mock-api/                           # Mock Business API (optional, `with-mcp` profile)
+│   ├── Dockerfile
+│   └── app.py                         # Fake customers/orders endpoints (in-memory, no DB)
+│
+├── mcp-server/                         # MCP server (optional, `with-mcp` profile)
+│   ├── Dockerfile
+│   └── server.py                      # FastMCP, Streamable HTTP transport; tools call
+│                                       # mock-api and query the shared `documents` table
+│
 ├── cli/                                # CLI (Phase 6)
 │   └── fde_cli.py                     # CLI commands (init, up, down, validate, deploy)
 │

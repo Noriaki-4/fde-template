@@ -11,6 +11,7 @@ help:
 	@echo "make up-rdf       - + Virtuoso only"
 	@echo "make up-nosql     - + ScyllaDB"
 	@echo "make up-streamlit - + Streamlit UI"
+	@echo "make up-mcp       - + Mock Business API + MCP server"
 	@echo "make down         - Stop containers"
 	@echo "make logs         - Tail service logs"
 	@echo "make db-reset     - Drop and re-create database schema"
@@ -53,6 +54,9 @@ up-nosql:
 
 up-streamlit:
 	docker compose -f infra/docker-compose.yml --profile with-streamlit up -d
+
+up-mcp:
+	docker compose -f infra/docker-compose.yml --profile with-mcp up -d
 
 down:
 	docker compose -f infra/docker-compose.yml down

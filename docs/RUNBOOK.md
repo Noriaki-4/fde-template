@@ -121,7 +121,27 @@ curl http://localhost:7474
 # Credentials: neo4j / password
 ```
 
-### 2.4 コンテナ停止
+### 2.4 Mock Business API + MCP Server 追加
+
+```bash
+make up-mcp
+# または: docker compose -f infra/docker-compose.yml --profile with-mcp up -d
+
+# Mock API ヘルスチェック
+curl http://localhost:8100/health
+curl http://localhost:8100/customers
+
+# MCP サーバー（Streamable HTTP、JSON-RPC）は http://localhost:8200/mcp で待受
+# 動作確認は mcp[cli] の inspector か、MCP クライアント経由で行う:
+uv run mcp dev mcp-server/server.py
+```
+
+MCP サーバーが公開するツール（読み取り専用）:
+- `get_customer(customer_id)` — Mock API の顧客情報を取得
+- `list_orders(customer_id=None)` — Mock API の注文一覧を取得
+- `search_documents(query, limit=10)` — 共有 Postgres の `documents` テーブルを検索
+
+### 2.5 コンテナ停止
 
 ```bash
 # すべて停止

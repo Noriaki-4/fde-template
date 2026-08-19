@@ -213,6 +213,55 @@ services:
     profiles:
       - with-nosql
 
+  # Mock Business API (fake customers/orders for PoC development)
+  mock-api:
+    build:
+      context: ..
+      dockerfile: mock-api/Dockerfile
+    container_name: fde-mock-api
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "8100:8100"
+    volumes:
+      - ../mock-api:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    profiles:
+      - with-mcp
+
+  # MCP Server (tools over mock-api + shared Postgres)
+  mcp-server:
+    build:
+      context: ..
+      dockerfile: mcp-server/Dockerfile
+    container_name: fde-mcp-server
+    environment:
+      MOCK_API_URL: http://mock-api:8100
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgresql:5432/fde_poc
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "8200:8200"
+    depends_on:
+      mock-api:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+    volumes:
+      - ../mcp-server:/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8200), timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    profiles:
+      - with-mcp
+
 volumes:
   postgres_data:
     driver: local
