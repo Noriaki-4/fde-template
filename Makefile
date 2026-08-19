@@ -5,10 +5,15 @@ help:
 	@echo "===================="
 	@echo "make install      - Install dependencies"
 	@echo "make dev          - Setup dev environment"
-	@echo "make up           - Start containers"
+	@echo "make up           - Start containers (core services)"
+	@echo "make up-search    - + OpenSearch"
+	@echo "make up-graph     - + Neo4j + Virtuoso"
+	@echo "make up-rdf       - + Virtuoso only"
+	@echo "make up-nosql     - + ScyllaDB"
+	@echo "make up-streamlit - + Streamlit UI"
 	@echo "make down         - Stop containers"
 	@echo "make logs         - Tail service logs"
-	@echo "make db-reset     - Reset database"
+	@echo "make db-reset     - Drop and re-create database schema"
 	@echo "make seed         - Seed sample data"
 	@echo "make test         - Run tests"
 	@echo "make coverage     - Test coverage report"
@@ -21,12 +26,12 @@ help:
 
 install:
 	uv venv
-	uv install -e ".[dev]"
+	uv pip install -e ".[dev]"
 	cd cdk && npm install && cd ..
 
 dev: install
 	pre-commit install
-	cp .env.example .env
+	cp .env.example .env.local
 
 up:
 	docker compose -f infra/docker-compose.yml up -d
@@ -40,6 +45,15 @@ up-search:
 up-graph:
 	docker compose -f infra/docker-compose.yml --profile with-graph up -d
 
+up-rdf:
+	docker compose -f infra/docker-compose.yml --profile with-rdf up -d
+
+up-nosql:
+	docker compose -f infra/docker-compose.yml --profile with-nosql up -d
+
+up-streamlit:
+	docker compose -f infra/docker-compose.yml --profile with-streamlit up -d
+
 down:
 	docker compose -f infra/docker-compose.yml down
 
@@ -47,7 +61,8 @@ logs:
 	docker compose -f infra/docker-compose.yml logs -f
 
 db-reset:
-	uv run python scripts/init_db.py --reset
+	uv run python scripts/init_db.py drop
+	uv run python scripts/init_db.py
 
 db-init:
 	uv run python scripts/init_db.py
@@ -79,7 +94,7 @@ lint:
 
 format:
 	uv run black .
-	uv run isort .
+	uv run ruff check --fix .
 
 type-check:
 	uv run mypy backend/

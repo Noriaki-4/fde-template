@@ -1,25 +1,21 @@
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
 import structlog
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from backend.api.routes import genu_chat, health, rag, search
 from backend.config import get_config
-from backend.api.routes import health, search
 from backend.database.db import init_db
+from backend.database.nosql.base import NoSQLRepository
 from backend.factory import ServiceFactory
 from backend.services.graph import GraphService
-from backend.services.rdf import RDFService
 from backend.services.llm import LLMService
-from backend.database.nosql.base import NoSQLRepository
 from backend.services.opensearch import OpenSearchInterface
+from backend.services.rdf import RDFService
 
 logger = structlog.get_logger()
 
 config = get_config()
-app = FastAPI(
-    title="FDE Template API",
-    description="FDE Modular AI PoC Platform",
-    version="0.1.0"
-)
+app = FastAPI(title="FDE Template API", description="FDE Modular AI PoC Platform", version="0.1.0")
 
 # Initialize services
 graph_service: GraphService | None = None
@@ -48,6 +44,7 @@ def get_nosql_service() -> NoSQLRepository | None:
 def get_opensearch_service() -> OpenSearchInterface | None:
     return opensearch_service
 
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -60,9 +57,6 @@ app.add_middleware(
 # Routers
 app.include_router(health.router)
 app.include_router(search.router, prefix="/search", tags=["search"])
-
-from backend.api.routes import rag
-
 app.include_router(rag.router, prefix="/rag", tags=["rag"])
 
 if config.graph_enabled or config.rdf_enabled:
@@ -81,9 +75,8 @@ if config.opensearch_enabled:
     app.include_router(opensearch.router, prefix="/opensearch", tags=["opensearch"])
 
 # GenU Chat API (Phase 9)
-from backend.api.routes import genu_chat
-
 app.include_router(genu_chat.router, prefix="/chat", tags=["chat"])
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -117,10 +110,13 @@ async def startup_event():
     if opensearch_service:
         logger.info("OpenSearch service initialized", url=config.opensearch_url)
 
+
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("Backend shutdown")
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
