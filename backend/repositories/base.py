@@ -28,11 +28,13 @@ class Repository(ABC, Generic[T]):
         """全件取得"""
         return self.db.query(self.model).offset(skip).limit(limit).all()
 
-    def update(self, id: str, obj: T) -> Optional[T]:
-        """更新"""
+    def update(self, id: str, changes: dict) -> Optional[T]:
+        """更新（changes: 属性名 → 新しい値）"""
         db_obj = self.get_by_id(id)
         if db_obj:
-            for key, value in obj.dict(exclude_unset=True).items():
+            for key, value in changes.items():
+                if not hasattr(db_obj, key):
+                    raise ValueError(f"Unknown field: {key}")
                 setattr(db_obj, key, value)
             self.db.commit()
             self.db.refresh(db_obj)
