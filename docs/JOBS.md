@@ -129,6 +129,10 @@ API（backend 起動時）:
 
 状態: `pending → running → succeeded | failed`。
 
+成果物用のバケット（`MINIO_BUCKET`, 既定 `knowledge-root`）は compose の `minio-init` が作成する
+（AWS では CDK が S3 バケットを作る。アプリはバケットを作らない）。`make up` を使わずに MinIO を
+起動した場合は `docker compose -f infra/docker-compose.yml up minio-init` を一度実行する。
+
 ---
 
 ## 4. 仕組み

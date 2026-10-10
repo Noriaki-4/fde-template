@@ -40,6 +40,18 @@ services:
       retries: 30
       start_period: 10s
 
+  # Creates the bucket once (AWS: the S3 bucket is created by CDK, not by the app)
+  minio-init:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: fde-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "mc alias set local http://minio:9000 minioadmin minioadmin &&
+             mc mb --ignore-existing local/knowledge-root"
+    restart: "no"
+
   # FastAPI Backend
   backend:
     build:
@@ -59,8 +71,8 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
-      minio:
-        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     volumes:
       - ../backend:/app/backend
       - ../projects:/app/projects
@@ -91,8 +103,8 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
-      minio:
-        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     volumes:
       - ../backend:/app/backend
     entrypoint: ["python", "-m", "backend.jobs"]
