@@ -1,0 +1,14 @@
+# Sample pipeline — one step = one Step Functions Task state on AWS. Safe to delete.
+name: hello-pipeline
+description: Runs the sample hello job twice
+# schedule: "cron(0 18 * * ? *)"   # AWS EventBridge Scheduler expression (ignored locally)
+steps:
+  - id: greet-alice
+    job: hello
+    params: { name: alice }
+    timeout_seconds: 300
+    retries: 0
+    resources: { cpu: 256, memory: 512 }   # ECS task size on AWS
+  - id: greet-bob
+    job: hello
+    params: { name: bob }

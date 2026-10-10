@@ -13,6 +13,7 @@ Modular, production-ready foundation for AI PoC (Phases 1-9) supporting local OS
 - **Implementation**: [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) — Phase roadmap
 - **Operations**: [RUNBOOK.md](docs/RUNBOOK.md) — Troubleshooting & deployment
 - **Structure**: [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) — Directory layout
+- **Jobs**: [JOBS.md](docs/JOBS.md) — Batch jobs & pipelines (local subprocess ↔ ECS / Step Functions)
 
 ---
 

@@ -49,6 +49,21 @@ class Settings(BaseSettings):
     bedrock_model_id: str = "anthropic.claude-3-5-sonnet-20241022-v2:0"
     embedding_model: str = "bge-m3"
 
+    # Object storage engine for job artifacts: minio (local, uses MINIO_*) | s3 (AWS default endpoint)
+    storage_engine: str = "minio"
+
+    # Jobs — see docs/JOBS.md and adr/004-job-execution.md
+    job_launcher: str = "local"  # local (subprocess) | ecs (ECS RunTask)
+    job_modules: str = (
+        "backend.jobs.definitions"  # comma-separated packages scanned for @register_job
+    )
+    job_pipelines_dir: str = "backend/jobs/pipelines"
+    ecs_cluster: str = ""
+    ecs_job_task_definition: str = ""
+    ecs_job_container_name: str = "job"
+    ecs_subnets: str = ""  # comma-separated
+    ecs_security_groups: str = ""  # comma-separated
+
     class Config:
         env_file = ".env.local"
         case_sensitive = False

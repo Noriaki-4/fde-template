@@ -28,6 +28,7 @@ FDE PoC は開発効率のため **ローカル開発から AWS デプロイま�
 | **Graph** | Neo4j 5.26 | Neptune |
 | **LLM** | Ollama | Bedrock |
 | **Agent** | Strands / LangGraph | AgentCore Runtime |
+| **Jobs** | subprocess / `docker compose run` | ECS Fargate RunTask + Step Functions（ADR 004） |
 | **IaC** | Docker Compose | AWS CDK |
 
 ### 実装方法

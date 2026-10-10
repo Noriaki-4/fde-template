@@ -262,6 +262,24 @@ curl -X POST "http://localhost:8000/chat/conversations/$CONV_ID/messages" \
 > **注**: Agent Runtime（`backend/agent/`）は実装のみでルーティングされておらず、
 > `/agent/*` エンドポイントは存在しない。詳細は [AGENTS.md](../AGENTS.md) を参照。
 
+### 3.8 Jobs API（常時有効）
+
+```bash
+# 登録済みジョブ
+curl http://localhost:8000/jobs/
+
+# 非同期起動 → run_id で状態確認
+RUN_ID=$(curl -s -X POST http://localhost:8000/jobs/hello/runs \
+  -H "Content-Type: application/json" -d '{"params": {"name": "api"}}' | jq -r '.run_id')
+curl http://localhost:8000/jobs/runs/$RUN_ID
+
+# パイプライン
+curl -X POST http://localhost:8000/jobs/pipelines/hello-pipeline/runs -H "Content-Type: application/json" -d '{}'
+```
+
+CLI からは `make job name=hello`、`make pipeline name=hello-pipeline`、`make job-runs`。
+ジョブの追加方法は [JOBS.md](JOBS.md)。
+
 ---
 
 ## 4. ローカル Ollama セットアップ

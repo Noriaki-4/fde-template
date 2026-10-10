@@ -2,11 +2,14 @@ import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.api.routes import genu_chat, health, rag, search
+from backend.api.routes import genu_chat, health, jobs, rag, search
 from backend.config import get_config
-from backend.database.db import init_db
+from backend.database.db import SessionLocal, init_db
 from backend.database.nosql.base import NoSQLRepository
 from backend.factory import ServiceFactory
+from backend.jobs.launcher import JobLauncher, LocalJobLauncher
+from backend.jobs.pipeline import LocalPipelineRunner, PipelineDefinition, load_pipelines
+from backend.jobs.registry import discover_jobs
 from backend.services.graph import GraphService
 from backend.services.llm import LLMService
 from backend.services.opensearch import OpenSearchInterface
@@ -23,6 +26,9 @@ rdf_service: RDFService | None = None
 llm_service: LLMService | None = None
 nosql_service: NoSQLRepository | None = None
 opensearch_service: OpenSearchInterface | None = None
+job_launcher: JobLauncher | None = None
+pipeline_runner: LocalPipelineRunner | None = None
+pipelines: dict[str, PipelineDefinition] = {}
 
 
 def get_graph_service() -> GraphService | None:
@@ -43,6 +49,18 @@ def get_nosql_service() -> NoSQLRepository | None:
 
 def get_opensearch_service() -> OpenSearchInterface | None:
     return opensearch_service
+
+
+def get_job_launcher() -> JobLauncher | None:
+    return job_launcher
+
+
+def get_pipeline_runner() -> LocalPipelineRunner | None:
+    return pipeline_runner
+
+
+def get_pipelines() -> dict[str, PipelineDefinition]:
+    return pipelines
 
 
 # CORS middleware
@@ -74,6 +92,9 @@ if config.opensearch_enabled:
 
     app.include_router(opensearch.router, prefix="/opensearch", tags=["opensearch"])
 
+# Jobs (adr/004-job-execution.md)
+app.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
+
 # GenU Chat API (Phase 9)
 app.include_router(genu_chat.router, prefix="/chat", tags=["chat"])
 
@@ -81,6 +102,7 @@ app.include_router(genu_chat.router, prefix="/chat", tags=["chat"])
 @app.on_event("startup")
 async def startup_event():
     global graph_service, rdf_service, llm_service, nosql_service, opensearch_service
+    global job_launcher, pipeline_runner, pipelines
 
     logger.info("Backend startup", config=config.model_dump())
     try:
@@ -109,6 +131,21 @@ async def startup_event():
     opensearch_service = ServiceFactory.create_opensearch_service(config)
     if opensearch_service:
         logger.info("OpenSearch service initialized", url=config.opensearch_url)
+
+    _init_jobs()
+
+
+def _init_jobs() -> None:
+    global job_launcher, pipeline_runner, pipelines
+    try:
+        discover_jobs(config.job_modules)
+        job_launcher = ServiceFactory.create_job_launcher(config, SessionLocal)
+        if isinstance(job_launcher, LocalJobLauncher):
+            pipeline_runner = LocalPipelineRunner(job_launcher, SessionLocal)
+        pipelines = load_pipelines(config.job_pipelines_dir)
+        logger.info("Jobs initialized", launcher=config.job_launcher, pipelines=list(pipelines))
+    except Exception as e:
+        logger.error("Jobs initialization failed", error=str(e))
 
 
 @app.on_event("shutdown")

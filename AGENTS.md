@@ -108,6 +108,32 @@ RAGService の設計と矛盾していたため、`graph_enabled` / `rdf_enabled
 
 ---
 
+## Jobs（実装・配線済み）
+
+汎用のジョブ実行基盤。具体的なジョブ（スクレイピング等）は含まず、サンプル `hello` /
+`hello-pipeline` のみ。詳細は [docs/JOBS.md](docs/JOBS.md)、設計は
+[adr/004-job-execution.md](adr/004-job-execution.md)。
+
+- ジョブ追加: `backend/jobs/definitions/` に `@register_job("name")` を付けた `Job` サブクラスを置く
+  （`JOB_MODULES` のパッケージは起動時に自動 import）
+- 実行: `LocalJobLauncher`（subprocess）/ `EcsJobLauncher`（ECS RunTask）を
+  `ServiceFactory.create_job_launcher(config, SessionLocal)` が `JOB_LAUNCHER=local|ecs` で選択。
+  `main.py` が起動時に生成し `/jobs/*` から利用
+- ジョブ本体のコマンドはローカル・ECS 共通: `python -m backend.jobs exec <job> --run-id <id>`
+- **状態はジョブに書かせない**: プロセス終了 / ECS Task State Change から `RunEvent` を作り
+  `RunEventHandler` だけが `job_runs.status` を更新する（OOM kill でも failed になる）
+- パイプライン: `backend/jobs/pipelines/*.yaml`。ローカルは `LocalPipelineRunner`、AWS は Step Functions（CDK 未実装）
+- 実行記録: Postgres の `job_runs` / `run_artifacts`。成果物は MinIO/S3 の `runs/{root_run_id}/{job}/`
+
+## RAG 文書台帳（モデル・リポジトリのみ）
+
+[adr/003-rag-data-layers.md](adr/003-rag-data-layers.md)。原本 = S3、メタデータとリネージの正本 =
+Postgres の `catalog_documents` / `catalog_document_targets`（`CatalogRepository`）、
+OpenSearch / Neo4j / RDF は再構築可能な派生ストア。API はまだ無く、取り込みジョブから直接使う。
+既存の `documents` テーブル + `SearchService` は OpenSearch 無効時の簡易検索として残している（台帳とは別物）。
+
+---
+
 ## テスト
 
 **Location**: `tests/unit/`（フラット構成、`agent/` サブディレクトリなし）
@@ -119,6 +145,10 @@ RAGService の設計と矛盾していたため、`graph_enabled` / `rdf_enabled
 - `test_api_opensearch.py` — OpenSearch（`/opensearch/*`）
 - `test_genu_chat.py` — Chat（`/chat/*`、LLM 呼び出しはフェイクでモック）
 - `test_canonical_graph.py` — Canonical Graph データモデル
+- `test_job_*.py`, `test_api_jobs.py` — Jobs（レジストリ、イベント、ローカル実行は実 subprocess + sqlite ファイル DB、
+  パイプライン、ECS 起動・イベント変換はフェイク boto3 クライアント、CLI）。テスト専用ジョブは `tests/fixtures/jobs/`
+- `test_catalog.py` — RAG 文書台帳
+- `test_object_store.py` — S3/MinIO オブジェクトストア
 
 Agent Runtime 層（未配線）のテストは存在しない。
 
@@ -129,4 +159,7 @@ Agent Runtime 層（未配線）のテストは存在しない。
 - [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) - 実装ロードマップ
 - [docs/requirements/fde_modular_ai_platform_handoff_v2.md](docs/requirements/fde_modular_ai_platform_handoff_v2.md) - 全体設計
 - [adr/002-local-aws-parity.md](adr/002-local-aws-parity.md)
+- [adr/003-rag-data-layers.md](adr/003-rag-data-layers.md) - RAG データ 3 層化と文書台帳
+- [adr/004-job-execution.md](adr/004-job-execution.md) - ジョブ実行基盤
+- [docs/JOBS.md](docs/JOBS.md) - ジョブの追加・実行方法
 - [docs/RUNBOOK.md](docs/RUNBOOK.md) - 起動・デプロイ手順

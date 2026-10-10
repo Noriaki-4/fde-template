@@ -34,3 +34,27 @@ def client(db):
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def sqlite_url(tmp_path):
+    return f"sqlite:///{tmp_path / 'jobs.db'}"
+
+
+@pytest.fixture
+def session_factory(sqlite_url):
+    """Session factory on an isolated file DB (also reachable from job subprocesses)."""
+    file_engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
+    Base.metadata.create_all(bind=file_engine)
+    yield sessionmaker(autocommit=False, autoflush=False, bind=file_engine)
+    file_engine.dispose()
+
+
+@pytest.fixture
+def job_env(monkeypatch, sqlite_url):
+    """Environment for job subprocesses: same DB file + test fixture jobs."""
+    import tests.fixtures.jobs  # noqa: F401  (registers test jobs in this process)
+
+    monkeypatch.setenv("DATABASE_URL", sqlite_url)
+    monkeypatch.setenv("JOB_MODULES", "backend.jobs.definitions,tests.fixtures.jobs")
+    monkeypatch.setenv("JOB_LAUNCHER", "local")

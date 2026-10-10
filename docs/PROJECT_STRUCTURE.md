@@ -23,14 +23,16 @@ fde-template/
 │   │       ├── graph.py               # openCypher / SPARQL queries (Phase 3, gated by GRAPH_ENABLED / RDF_ENABLED)
 │   │       ├── nosql.py               # NoSQL CRUD (Phase 7, gated by NOSQL_ENABLED)
 │   │       ├── opensearch.py          # OpenSearch index/search (Phase 2, gated by OPENSEARCH_ENABLED)
-│   │       └── genu_chat.py           # GenU-compatible chat API (Phase 9), calls LLM service
+│   │       ├── genu_chat.py           # GenU-compatible chat API (Phase 9), calls LLM service
+│   │       └── jobs.py                # Job / pipeline launch & run status (docs/JOBS.md)
 │   │
 │   ├── config.py                      # Settings (pydantic-settings, reads .env.local)
 │   ├── factory.py                     # ServiceFactory — creates service instances from config
 │   │
 │   ├── database/
 │   │   ├── db.py                      # SQLAlchemy session management
-│   │   ├── models.py                  # SQLAlchemy ORM models (Document, SearchIndex, ProjectConfig)
+│   │   ├── models.py                  # SQLAlchemy ORM models (Document, SearchIndex, ProjectConfig,
+│   │   │                              #   JobRun, RunArtifact, CatalogDocument, CatalogDocumentTarget)
 │   │   └── nosql/
 │   │       ├── base.py                # NoSQLRepository ABC
 │   │       ├── dynamodb.py            # DynamoDBRepository (boto3)
@@ -38,7 +40,9 @@ fde-template/
 │   │
 │   ├── repositories/
 │   │   ├── base.py                    # Generic repository base class
-│   │   └── document.py                # Document repository (SQLAlchemy)
+│   │   ├── document.py                # Document repository (SQLAlchemy)
+│   │   ├── job_run.py                 # job_runs / run_artifacts (status only via RunEventHandler)
+│   │   └── catalog.py                 # RAG document catalog (ADR 003)
 │   │
 │   ├── services/
 │   │   ├── search.py                  # SearchService — DB-backed document search (Phase 1)
@@ -59,7 +63,20 @@ fde-template/
 │   │       ├── transformer.py         # Neo4j / RDF → canonical format
 │   │       └── serializer.py          # Canonical graph (de)serialization
 │   │
+│   ├── jobs/                          # Job execution framework (ADR 004, docs/JOBS.md)
+│   │   ├── __main__.py                # CLI: python -m backend.jobs list|run|exec|runs|status|pipelines|pipeline
+│   │   ├── base.py / registry.py      # Job ABC, @register_job, discover_jobs
+│   │   ├── context.py                 # JobContext, ArtifactStore (S3 runs/{root_run_id}/{job}/)
+│   │   ├── executor.py                # Runs one job body (the `exec` command; ECS task command)
+│   │   ├── events.py                  # RunEvent, RunEventHandler — the only writer of run status
+│   │   ├── launcher.py                # JobLauncher ABC, LocalJobLauncher (subprocess)
+│   │   ├── pipeline.py                # Pipeline YAML, LocalPipelineRunner
+│   │   ├── aws.py                     # EcsJobLauncher, ECS event → RunEvent, lambda_handler
+│   │   ├── definitions/               # Put jobs here (sample: hello.py)
+│   │   └── pipelines/                 # Pipeline YAML (sample: hello.yaml)
+│   │
 │   └── storage/
+│       ├── object_store.py            # ObjectStore ABC + S3ObjectStore (MinIO / S3)
 │       └── graph_store.py             # GraphStorageService — persists canonical graphs to MinIO/S3, NOT wired into main.py
 │
 ├── frontend/
@@ -216,6 +233,8 @@ fde-template/
 | `tests/unit/test_api_rag.py`, `test_api_nosql.py`, `test_api_opensearch.py` | Unit | Mock the underlying service via `app.dependency_overrides` |
 | `tests/unit/test_genu_chat.py` | Unit | Mocks the LLM dependency with a `FakeLLMService` |
 | `tests/unit/test_canonical_graph.py` | Unit | Tests canonical graph dataclasses only — not the storage/API layer |
+| `tests/unit/test_job_*.py`, `test_api_jobs.py` | Unit | Job framework. Local launcher tests spawn real `python -m backend.jobs exec` subprocesses against a temp sqlite file (`session_factory` / `job_env` fixtures); test-only jobs live in `tests/fixtures/jobs/` |
+| `tests/unit/test_catalog.py`, `test_object_store.py` | Unit | RAG document catalog, S3/MinIO object store |
 | `tests/integration/test_database.py` | Integration | Database layer |
 
 ### Scripts
@@ -242,6 +261,9 @@ fde-template/
 5. **Wire it into `backend/api/main.py`**: global variable, getter function, startup-event instantiation, conditional or unconditional router registration
 6. **Add routes**: `backend/api/routes/new_route.py`
 7. **Add tests**: `tests/unit/test_api_new.py`, overriding the route's dependency getter with a fake
+
+**Adding a batch job** is different: no factory/wiring needed — drop a `@register_job` class into
+`backend/jobs/definitions/` (see [JOBS.md](JOBS.md)).
 
 This is the exact pattern `graph`/`rdf`/`llm`/`nosql`/`opensearch`/`rag` all follow — a service implemented but skipping step 5 is the most common way a feature ends up orphaned (see AGENTS.md for currently-orphaned examples).
 

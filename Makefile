@@ -1,4 +1,4 @@
-.PHONY: help install dev up down test lint format clean deploy destroy
+.PHONY: help install dev up down test lint format clean deploy destroy jobs job job-docker pipeline job-runs
 
 help:
 	@echo "FDE Template Commands"
@@ -16,6 +16,11 @@ help:
 	@echo "make logs         - Tail service logs"
 	@echo "make db-reset     - Drop and re-create database schema"
 	@echo "make seed         - Seed sample data"
+	@echo "make jobs         - List registered jobs and pipelines"
+	@echo "make job name=hello params='{}'          - Run a job locally"
+	@echo "make job-docker name=hello params='{}'   - Run a job in a container"
+	@echo "make pipeline name=hello-pipeline        - Run a pipeline locally"
+	@echo "make job-runs     - Recent job runs"
 	@echo "make test         - Run tests"
 	@echo "make coverage     - Test coverage report"
 	@echo "make lint         - Lint code"
@@ -74,6 +79,24 @@ db-init:
 seed: db-init
 	uv run python scripts/seed_documents.py
 	uv run python scripts/seed_graph.py
+
+params ?= {}
+
+jobs:
+	uv run python -m backend.jobs list
+	uv run python -m backend.jobs pipelines
+
+job:
+	uv run python -m backend.jobs run $(name) --params '$(params)'
+
+job-docker:
+	docker compose -f infra/docker-compose.yml --profile jobs run --rm jobs run $(name) --params '$(params)'
+
+pipeline:
+	uv run python -m backend.jobs pipeline $(name)
+
+job-runs:
+	uv run python -m backend.jobs runs
 
 backend:
 	cd backend && uv run uvicorn api.main:app --reload

@@ -261,3 +261,4 @@ E2E Tests
 3. Add new Routes
 4. Add new Models/Schemas
 5. Add new Storage backends (via S3/DynamoDB APIs)
+6. Add batch jobs / pipelines (`backend/jobs/definitions/`, `backend/jobs/pipelines/` — see [JOBS.md](JOBS.md), ADR 004)

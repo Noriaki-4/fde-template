@@ -72,6 +72,34 @@ services:
       retries: 30
       start_period: 15s
 
+  # Job runner (same image as backend). One-off: ECS RunTask equivalent.
+  #   docker compose -f infra/docker-compose.yml --profile jobs run --rm jobs run hello
+  jobs:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgresql:5432/fde_poc
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: knowledge-root
+      STORAGE_ENGINE: minio
+      JOB_LAUNCHER: local
+      PYTHONUNBUFFERED: 1
+      LOG_LEVEL: INFO
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - ../backend:/app/backend
+    entrypoint: ["python", "-m", "backend.jobs"]
+    command: ["--help"]
+    profiles:
+      - jobs
+
   # Gradio UI
   gradio:
     build:

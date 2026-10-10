@@ -4,10 +4,13 @@ from typing import Union
 
 from backend.config import Settings
 from backend.database.nosql.base import NoSQLRepository
+from backend.jobs.context import SessionFactory
+from backend.jobs.launcher import JobLauncher
 from backend.services.graph import GraphService, Neo4jGraphService
 from backend.services.llm import LLMService, OllamaLLMService
 from backend.services.opensearch import OpenSearchInterface, OpenSearchService
 from backend.services.rdf import RDFService, VirtuosoRDFService
+from backend.storage.object_store import ObjectStore
 
 
 class ServiceFactory:
@@ -76,6 +79,26 @@ class ServiceFactory:
                 config.nosql_table_name,
             )
         return None
+
+    @staticmethod
+    def create_object_store(config: Settings) -> ObjectStore:
+        """S3 API object store (MinIO locally, S3 on AWS) — used for job artifacts"""
+        from backend.storage.object_store import S3ObjectStore
+
+        return S3ObjectStore.from_config(config)
+
+    @staticmethod
+    def create_job_launcher(config: Settings, session_factory: SessionFactory) -> JobLauncher:
+        """Job launcher: local subprocess or ECS RunTask (adr/004-job-execution.md)"""
+        if config.job_launcher == "local":
+            from backend.jobs.launcher import LocalJobLauncher
+
+            return LocalJobLauncher(session_factory)
+        if config.job_launcher == "ecs":
+            from backend.jobs.aws import EcsJobLauncher
+
+            return EcsJobLauncher.from_config(config, session_factory)
+        raise ValueError(f"Unknown job_launcher: {config.job_launcher!r} (local | ecs)")
 
     @staticmethod
     def create_opensearch_service(config: Settings) -> Union[OpenSearchInterface, None]:
